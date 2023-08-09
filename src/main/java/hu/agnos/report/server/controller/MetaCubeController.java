@@ -26,7 +26,7 @@ public class MetaCubeController {
     @Autowired
     private CubeService cubeService;
 
-    @GetMapping("/meta/cube")
+    @GetMapping(value = "/meta/cube", produces = "application/json")
     ResponseEntity<?> getCubeMeta(@RequestParam(value = "cube_name", required = true) String cubeName) {
         byte[] decodedBytes = Base64.getDecoder().decode(cubeName);
         cubeName = new String(decodedBytes);

@@ -26,7 +26,7 @@ public class CubeService {
     List<Report> reportList;
 
     @Autowired
-    Optional<CubeList> cubeList;
+    CubeList cubeList;
     
     //TODO: vajaon ez jó-e így, konkurens futásnál lehet-e baj?
     @Autowired
@@ -73,7 +73,7 @@ public class CubeService {
                     break;
             }
 
-            reportString = reportString.replaceAll("zolikaokosdataUpdated", createdDateString);
+            reportString = reportString.replaceAll("ValueOfUpdatedIsOnlyRevealedAtRuntime", createdDateString);
             //if (Authorizator.hasPermission(username, report.getRoleToAccess())) {
                 s += reportString;
             //}                
@@ -102,8 +102,8 @@ public class CubeService {
 
     private String getCreatedDate(String cubeName) {
         String result = "";
-        if (this.cubeList.isPresent()) {
-            for (CubeNameAndDate cubeNameAndDate : this.cubeList.get().getCubesNameAndDate()) {
+        if (cubeList != null) {
+            for (CubeNameAndDate cubeNameAndDate : cubeList.getCubesNameAndDate()) {
                 if (cubeNameAndDate.getName().equals(cubeName)) {
                     result = cubeNameAndDate.getCreatedDate();
                     break;

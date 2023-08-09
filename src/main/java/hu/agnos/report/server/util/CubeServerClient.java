@@ -34,7 +34,7 @@ public class CubeServerClient {
         return (new CubeClient()).getMeasureHeaderOfCube(cubeServerUri, cubeName);
     }
 
-    public Optional<CubeList> getCubetList() {
+    public Optional<CubeList> getCubeList() {
         return (new CubeClient()).getCubesNameAndDate(cubeServerUri);
     }
 

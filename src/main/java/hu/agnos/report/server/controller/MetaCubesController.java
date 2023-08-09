@@ -25,9 +25,8 @@ public class MetaCubesController {
     @Autowired
     private CubeService cubeService;
 
-    @GetMapping("/meta/cubes")
+    @GetMapping(value = "/meta/cubes", produces = "application/json")
     ResponseEntity<?> getCubeList() {
-        System.out.println("itt");
         String jsonCubesHeader = cubeService.getReportsHeader();
         Optional<String> result = Optional.ofNullable(jsonCubesHeader);
         return result.map(response -> ResponseEntity.ok().body(response))
