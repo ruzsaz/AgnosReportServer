@@ -31,7 +31,6 @@ public class CubeController {
     @GetMapping(value = "/cube", produces = "application/json")
     ResponseEntity<?> getData(@RequestParam(value = "queries", required = false) String encodedQueries) throws Exception {
         String queries = new String(Base64.getDecoder().decode(encodedQueries));
-
         String resultSet = cubeService.getData(queries);
 
         Optional<String> result = Optional.ofNullable(resultSet);

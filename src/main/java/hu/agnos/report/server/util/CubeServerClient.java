@@ -20,21 +20,21 @@ public class CubeServerClient {
 
     //TODO: az @Value-nak utánnanézni
     //@Value("${agnos.cube.server.uri}")
-    private String cubeServerUri = "http://localhost:7979/acs";
+    private static final String cubeServerUri = "http://localhost:7979/acs";
 
-    public Optional<ResultSet[]> getCubeData(String cubeName, String baseVector, String drillVectorsComrressOneString) {
+    public static Optional<ResultSet[]> getCubeData(String cubeName, String baseVector, String drillVectorsComrressOneString) {
         return (new CubeClient()).getData(cubeServerUri, cubeName, baseVector, drillVectorsComrressOneString);
     }
 
-    public Optional<String[]> getCubeHierarchyHeader(String cubeName) {
+    public static Optional<String[]> getCubeHierarchyHeader(String cubeName) {
         return (new CubeClient()).getHierarchyHeaderOfCube(cubeServerUri, cubeName);
     }
 
-    public Optional<String[]> getCubeMeasureHeaderOfCube(String cubeName) {
+    public static Optional<String[]> getCubeMeasureHeaderOfCube(String cubeName) {
         return (new CubeClient()).getMeasureHeaderOfCube(cubeServerUri, cubeName);
     }
 
-    public Optional<CubeList> getCubeList() {
+    public static Optional<CubeList> getCubeList() {
         return (new CubeClient()).getCubesNameAndDate(cubeServerUri);
     }
 

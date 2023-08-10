@@ -27,20 +27,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class AgnosQueryGenerator {
 
-    private final String MAIN_SEPARATOR = ";";
+    private final static String MAIN_SEPARATOR = ";";
 
-    private final String SECONDARY_SEPARATOR = ":";
-
-    private final List<AgnosQueryPostProcessor> postProcessorPool;
+    private final static String SECONDARY_SEPARATOR = ":";
 
     @Autowired
     private CubeServerClient cubeServerClient;
 
     public AgnosQueryGenerator() {
-        this.postProcessorPool = new ArrayList();
     }
 
     public String getResponse(String message) throws SQLException, ClassNotFoundException, InterruptedException, Exception {
+        List<AgnosQueryPostProcessor> postProcessorPool = new ArrayList();
         StringBuilder response = new StringBuilder();
 
         String[] messageArray = message.split(MAIN_SEPARATOR);
@@ -59,7 +57,6 @@ public class AgnosQueryGenerator {
             CubeHandler cubeHandler = new CubeHandler(hierarchyHeader, measureHeader);
 
             String baseVector = messageArray[1];
-//        System.out.println("baseVector: "+baseVector);
             String[] drillVectors = new String[messageArray.length - 2];
 
             for (int i = 2; i < messageArray.length; i++) {
@@ -82,7 +79,7 @@ public class AgnosQueryGenerator {
             String[] drillVectorsArray = new String[drillVectorsSize];
             for (int i = 0; i < drillVectorsSize; i++) {
                 drillVectorsArray[i] = preProcessor.drillVectorConverter(temp, drillVectors[i]);
-                this.postProcessorPool.add(new AgnosQueryPostProcessor(drillVectors[i], baseVector, report, cubeHandler));
+                postProcessorPool.add(new AgnosQueryPostProcessor(drillVectors[i], baseVector, report, cubeHandler));
             }
 
             String drillVectorsComrressOneString = DrillVectorCompressor.compressDrillVectorsInOneString(drillVectorsArray);
@@ -106,9 +103,8 @@ public class AgnosQueryGenerator {
             //postprocess       
             response.append("[");
             for (int i = 0; i < resultSets.length; i++) {
-                this.postProcessorPool.get(i).setResultSet(resultSets[i]);
-                String json = this.postProcessorPool.get(i).getResult().toString();
-//                    System.out.println("JSON: " + json);
+                postProcessorPool.get(i).setResultSet(resultSets[i]);
+                String json = postProcessorPool.get(i).getResult().toString();
                 response.append(json).append(",");
             }
         }

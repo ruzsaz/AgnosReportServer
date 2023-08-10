@@ -22,7 +22,8 @@ public abstract class AbstractAdditionalCalculation {
     protected String cubeName;
     protected CubeServerClient cubeServerClient;
 
-    public AbstractAdditionalCalculation( String args, String cubeName, String[] hierarchyHeader, String[] measureHeader, CubeServerClient cubeServerClient) { 
+    public AbstractAdditionalCalculation(String args, String cubeName, String[] hierarchyHeader, String[] measureHeader, CubeServerClient cubeServerClient) {
+        this.args = args;
         this.cubeName = cubeName;
         this.hierarchyHeader= hierarchyHeader;
         this.measureHeader = measureHeader;
