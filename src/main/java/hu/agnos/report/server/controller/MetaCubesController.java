@@ -8,9 +8,13 @@ package hu.agnos.report.server.controller;
 import hu.agnos.report.server.service.CubeService;
 
 import java.util.Optional;
+
+import jakarta.annotation.security.PermitAll;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,7 +31,7 @@ public class MetaCubesController {
 
     @GetMapping(value = "/meta/cubes", produces = "application/json")
     ResponseEntity<?> getCubeList() {
-        String jsonCubesHeader = cubeService.getReportsHeader();
+        String jsonCubesHeader = cubeService.getReportsHeader(SecurityContextHolder.getContext());
         Optional<String> result = Optional.ofNullable(jsonCubesHeader);
         return result.map(response -> ResponseEntity.ok().body(response))
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));

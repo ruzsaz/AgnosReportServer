@@ -11,8 +11,10 @@ import hu.mi.agnos.report.entity.Report;
 import hu.mi.agnos.report.exception.WrongCubeName;
 import hu.mi.agnos.report.util.JsonMarshaller;
 import java.util.List;
-import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Service;
 
 /**
@@ -29,16 +31,15 @@ public class CubeService {
     CubeList cubeList;
     
     //TODO: vajaon ez jó-e így, konkurens futásnál lehet-e baj?
+    //TODO: Az egészet static-á kéne alakítani
     @Autowired
     AgnosQueryGenerator agnosQueryGenerator;
 
     public String getData(String queries) throws WrongCubeName, Exception, ClassNotFoundException {
-        String cubeAndReportName = queries.split(";")[0];
-        String cubeUniqueName = cubeAndReportName.split(":")[0];
-        String reportUniqueName = cubeAndReportName.split(":")[1];
+        Report report = getReportEntity(queries);
         String responseString = null;
 
-        String databaseType = getReportEntity(cubeUniqueName, reportUniqueName).getDatabaseType().toUpperCase();
+        String databaseType = report.getDatabaseType().toUpperCase();
 
         switch (databaseType) {
             case "AGNOS_MOLAP" -> {
@@ -53,13 +54,13 @@ public class CubeService {
         return JsonMarshaller.getJSONFull(getReportEntity(cubeUniqueName, reportUniqueName));
     }
 
-    public String getReportsHeader() {
+    public String getReportsHeader(SecurityContext context) {
 
         String s = "{\"reports\":[";
         String origin = new String(s);
 
         //for (Cube cube : instance.values()) {            
-        for (Report report : this.reportList) {
+        for (Report report : AccessRoleService.availableForContext(context, this.reportList)) {
 
             String reportString = JsonMarshaller.getJSONHeader(report) + ",";
 
@@ -84,15 +85,21 @@ public class CubeService {
             s = s.substring(0, (s.length() - 1));
         }
 
-//        System.out.println(s);
         return s + "]}";
+    }
+
+    public Report getReportEntity(String queries) {
+        String cubeAndReportName = queries.split(";")[0];
+        String cubeUniqueName = cubeAndReportName.split(":")[0];
+        String reportUniqueName = cubeAndReportName.split(":")[1];
+        return getReportEntity(cubeUniqueName, reportUniqueName);
     }
 
     private Report getReportEntity(String cubeUniqueName, String reportUniqueName) {
         Report result = null;
         for (Report r : reportList) {
-            if (r.getName().toUpperCase().equals(reportUniqueName.toUpperCase())
-                    && r.getCubeName().toUpperCase().equals(cubeUniqueName.toUpperCase())) {
+            if (r.getName().equalsIgnoreCase(reportUniqueName)
+                    && r.getCubeName().equalsIgnoreCase(cubeUniqueName)) {
                 result = r;
                 break;
             }

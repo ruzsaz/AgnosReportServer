@@ -17,6 +17,7 @@ public class GreetingController {
 
 	@GetMapping("/greeting")
 	public String greeting(@RequestParam(value = "name", defaultValue = "World") String name) {
+		System.out.println("greeting");
 		return String.format(template, name);
 	}
 }
