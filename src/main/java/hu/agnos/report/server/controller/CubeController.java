@@ -36,7 +36,6 @@ public class CubeController {
     ResponseEntity<?> getData(@RequestParam(value = "queries", required = false) String encodedQueries) throws Exception {
         String queries = new String(Base64.getDecoder().decode(encodedQueries));
         Report report = cubeService.getReportEntity(queries);
-        System.out.println(report.getRoleToAccess());
         if (AccessRoleService.reportAccessible(SecurityContextHolder.getContext(), report)) {
             String resultSet = cubeService.getData(queries);
             Optional<String> result = Optional.ofNullable(resultSet);
