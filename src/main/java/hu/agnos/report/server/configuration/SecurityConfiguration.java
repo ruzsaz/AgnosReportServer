@@ -12,9 +12,6 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
-import lombok.Data;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -29,6 +26,7 @@ import org.springframework.security.authentication.AuthenticationManagerResolver
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -62,9 +60,9 @@ public class SecurityConfiguration {
         http.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         // Disable CSRF because of state-less session-management
-        http.csrf(csrf -> csrf.disable());
+        http.csrf(AbstractHttpConfigurer::disable);
 
-        // Return 401 (unauthorized) instead of 302 (redirect to login) when authorization is missing or invalid
+        // Return 401 (unauthorized) instead of 302 (redirect to log in) when authorization is missing or invalid
         http.exceptionHandling(eh -> eh.authenticationEntryPoint((request, response, authException) -> {
             response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"Restricted Content\"");
             response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
@@ -184,11 +182,11 @@ public class SecurityConfiguration {
                     return Stream.of(claimArr);
                 }
                 if (Collection.class.isAssignableFrom(claim.getClass())) {
-                    final var iter = ((Collection) claim).iterator();
-                    if (!iter.hasNext()) {
+                    final var iterator = ((Collection) claim).iterator();
+                    if (!iterator.hasNext()) {
                         return Stream.empty();
                     }
-                    final var firstItem = iter.next();
+                    final var firstItem = iterator.next();
                     if (firstItem instanceof String) {
                         return (Stream<String>) ((Collection) claim).stream();
                     }
@@ -202,9 +200,12 @@ public class SecurityConfiguration {
     }
 
     @Component
-    @RequiredArgsConstructor
     static class SpringAddonsJwtAuthenticationConverter implements Converter<Jwt, JwtAuthenticationToken> {
         private final IssuerProperties issuerProperties;
+
+        public SpringAddonsJwtAuthenticationConverter(IssuerProperties issuerProperties) {
+            this.issuerProperties = issuerProperties;
+        }
 
         @Override
         public JwtAuthenticationToken convert(Jwt jwt) {

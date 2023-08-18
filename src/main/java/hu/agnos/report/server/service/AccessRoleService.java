@@ -34,7 +34,6 @@ public class AccessRoleService {
     }
 
     public static boolean reportAccessible(SecurityContext context, Report report) {
-        System.out.println(report.getRoleToAccess());
         return hasRole(context, report.getRoleToAccess());
     }
 

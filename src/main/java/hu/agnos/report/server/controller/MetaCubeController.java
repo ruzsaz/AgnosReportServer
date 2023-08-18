@@ -5,14 +5,14 @@
  */
 package hu.agnos.report.server.controller;
 
-import hu.agnos.report.server.service.CubeService;
 import java.util.Base64;
 import java.util.Optional;
+
+import hu.agnos.report.server.service.CubeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,7 +27,7 @@ public class MetaCubeController {
     private CubeService cubeService;
 
     @GetMapping(value = "/meta/cube", produces = "application/json")
-    ResponseEntity<?> getCubeMeta(@RequestParam(value = "cube_name", required = true) String cubeName) {
+    ResponseEntity<?> getCubeMeta(@RequestParam(value = "cube_name") String cubeName) {
         byte[] decodedBytes = Base64.getDecoder().decode(cubeName);
         cubeName = new String(decodedBytes);
         String cubeUniqueName = cubeName.split(":")[0];
