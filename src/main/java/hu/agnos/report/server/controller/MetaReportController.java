@@ -8,7 +8,7 @@ package hu.agnos.report.server.controller;
 import java.util.Base64;
 import java.util.Optional;
 
-import hu.agnos.report.server.service.CubeService;
+import hu.agnos.report.server.service.ReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,10 +21,10 @@ import org.springframework.web.bind.annotation.RestController;
  * @author parisek
  */
 @RestController
-public class MetaCubeController {
+public class MetaReportController {
 
     @Autowired
-    private CubeService cubeService;
+    private ReportService cubeService;
 
     @GetMapping(value = "/meta/cube", produces = "application/json")
     ResponseEntity<?> getCubeMeta(@RequestParam(value = "cube_name") String cubeName) {

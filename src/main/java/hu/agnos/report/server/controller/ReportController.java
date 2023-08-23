@@ -9,7 +9,8 @@ import java.util.Base64;
 import java.util.Optional;
 
 import hu.agnos.report.server.service.AccessRoleService;
-import hu.agnos.report.server.service.CubeService;
+import hu.agnos.report.server.service.DataService;
+import hu.agnos.report.server.service.ReportService;
 import hu.mi.agnos.report.entity.Report;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,19 +26,22 @@ import org.springframework.web.bind.annotation.RestController;
  * @author parisek
  */
 @RestController
-public class CubeController {
+public class ReportController {
 
-    private final org.slf4j.Logger log = LoggerFactory.getLogger(CubeController.class);
+    private final org.slf4j.Logger log = LoggerFactory.getLogger(ReportController.class);
 
     @Autowired
-    private CubeService cubeService;
+    private ReportService cubeService;
+
+    @Autowired
+    private DataService dataService;
 
     @GetMapping(value = "/cube", produces = "application/json")
     ResponseEntity<?> getData(@RequestParam(value = "queries", required = false) String encodedQueries) throws Exception {
         String queries = new String(Base64.getDecoder().decode(encodedQueries));
         Report report = cubeService.getReportEntity(queries);
         if (AccessRoleService.reportAccessible(SecurityContextHolder.getContext(), report)) {
-            String resultSet = cubeService.getData(queries);
+            String resultSet = dataService.getData(queries);
             Optional<String> result = Optional.ofNullable(resultSet);
             return result.map(response -> ResponseEntity.ok().body(response))
                     .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));

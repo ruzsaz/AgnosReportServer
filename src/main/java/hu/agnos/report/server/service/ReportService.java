@@ -13,7 +13,6 @@ import hu.mi.agnos.report.util.JsonMarshaller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +21,7 @@ import org.springframework.stereotype.Service;
  * @author parisek
  */
 @Service
-public class CubeService {
+public class ReportService {
 
     @Autowired
     List<Report> reportList;
@@ -35,20 +34,6 @@ public class CubeService {
     @Autowired
     AgnosQueryGenerator agnosQueryGenerator;
 
-    public String getData(String queries) throws WrongCubeName, Exception, ClassNotFoundException {
-        Report report = getReportEntity(queries);
-        String responseString = null;
-
-        String databaseType = report.getDatabaseType().toUpperCase();
-
-        switch (databaseType) {
-            case "AGNOS_MOLAP" -> {
-                responseString = agnosQueryGenerator.getResponse(queries);
-            }
-        }
-
-        return responseString;
-    }
 
     public String getReport(String cubeUniqueName, String reportUniqueName) {
         return JsonMarshaller.getJSONFull(getReportEntity(cubeUniqueName, reportUniqueName));
