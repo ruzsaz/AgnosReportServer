@@ -1,1 +1,0 @@
-sudo docker build -t agnos-report-server:2.0 .
