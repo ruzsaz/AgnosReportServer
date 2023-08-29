@@ -20,7 +20,7 @@ public class CubeServerClient {
 
     //TODO: az @Value-nak utánnanézni
     //@Value("${agnos.cube.server.uri}")
-    private static final String cubeServerUri = "http://localhost:7979/acs";
+    private static final String cubeServerUri = "http://agnos-cube-nginx:7979/acs";
 
     public static Optional<ResultSet[]> getCubeData(String cubeName, String baseVector, String drillVectorsComrressOneString) {
         return (new CubeClient()).getData(cubeServerUri, cubeName, baseVector, drillVectorsComrressOneString);
