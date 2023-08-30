@@ -20,15 +20,15 @@ public abstract class AbstractAdditionalCalculation {
     protected String args;
     protected boolean correctArgs;
     protected String cubeName;
-    protected CubeServerClient cubeServerClient;
+    protected String cubeServerUri;
 
-    public AbstractAdditionalCalculation(String args, String cubeName, String[] hierarchyHeader, String[] measureHeader, CubeServerClient cubeServerClient) {
+    public AbstractAdditionalCalculation(String args, String cubeName, String[] hierarchyHeader, String[] measureHeader, String cubeServerUri) {
         this.args = args;
         this.cubeName = cubeName;
         this.hierarchyHeader= hierarchyHeader;
         this.measureHeader = measureHeader;
         this.correctArgs = false;
-        this.cubeServerClient = cubeServerClient;
+        this.cubeServerUri = cubeServerUri;
     }
     
     public boolean isCorrectArgs(){

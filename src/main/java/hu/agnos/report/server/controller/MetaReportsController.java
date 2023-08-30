@@ -24,11 +24,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class MetaReportsController {
 
     @Autowired
-    private ReportService cubeService;
+    private ReportService reportService;
 
     @GetMapping(value = "/meta/cubes", produces = "application/json")
     ResponseEntity<?> getCubeList() {
-        String jsonCubesHeader = cubeService.getReportsHeader(SecurityContextHolder.getContext());
+        String jsonCubesHeader = reportService.getReportsHeader(SecurityContextHolder.getContext());
         Optional<String> result = Optional.ofNullable(jsonCubesHeader);
         return result.map(response -> ResponseEntity.ok().body(response))
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));

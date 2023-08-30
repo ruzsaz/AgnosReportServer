@@ -15,27 +15,22 @@ import org.springframework.stereotype.Component;
  *
  * @author parisek
  */
-@Component
+
 public class CubeServerClient {
 
-    //TODO: az @Value-nak utánnanézni
-    //@Value("${agnos.cube.server.uri}")
-    private static final String cubeServerUri = "http://agnos-cube-nginx:7979/acs";
-
-    public static Optional<ResultSet[]> getCubeData(String cubeName, String baseVector, String drillVectorsComrressOneString) {
+    public static Optional<ResultSet[]> getCubeData(String cubeServerUri, String cubeName, String baseVector, String drillVectorsComrressOneString) {
         return (new CubeClient()).getData(cubeServerUri, cubeName, baseVector, drillVectorsComrressOneString);
     }
 
-    public static Optional<String[]> getCubeHierarchyHeader(String cubeName) {
+    public static Optional<String[]> getCubeHierarchyHeader(String cubeServerUri, String cubeName) {
         return (new CubeClient()).getHierarchyHeaderOfCube(cubeServerUri, cubeName);
     }
 
-    public static Optional<String[]> getCubeMeasureHeaderOfCube(String cubeName) {
+    public static Optional<String[]> getCubeMeasureHeaderOfCube(String cubeServerUri, String cubeName) {
         return (new CubeClient()).getMeasureHeaderOfCube(cubeServerUri, cubeName);
     }
 
-    public static Optional<CubeList> getCubeList() {
+    public static Optional<CubeList> getCubeList(String cubeServerUri) {
         return (new CubeClient()).getCubesNameAndDate(cubeServerUri);
     }
-
 }

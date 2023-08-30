@@ -29,11 +29,10 @@ public class KaplanMeierVariableBaseVector {
     private int kaplanMeierDimensioLastLevelId;
     private String auxBaseVector;
     private KaplanMeierTool tool;
-    private CubeServerClient cubeServerClient;
 
 
     public KaplanMeierVariableBaseVector(int kaplanMeierDimensioIdx, int kaplanMeierMeasureIdx, String baseVector, String[] originDrillVectors,
-            String cubeName, int kaplanMeierDimensioLastLevelId, String auxBaseVector, CubeServerClient cubeServerClient) {
+            String cubeName, int kaplanMeierDimensioLastLevelId, String auxBaseVector) {
         this.kaplanMeierDimensioIdx = kaplanMeierDimensioIdx;
         this.kaplanMeierMeasureIdx = kaplanMeierMeasureIdx;
         this.baseVector = baseVector;
@@ -42,10 +41,9 @@ public class KaplanMeierVariableBaseVector {
         this.kaplanMeierDimensioLastLevelId = kaplanMeierDimensioLastLevelId;
         this.auxBaseVector = auxBaseVector;
         this.tool = new KaplanMeierTool(kaplanMeierDimensioIdx, kaplanMeierMeasureIdx);
-        this.cubeServerClient = cubeServerClient;
     }
 
-    public ResultSet[] process() {
+    public ResultSet[] process(String cubeServerUri) {
 
         ResultSet[] result = new ResultSet[originDrillVectors.length];
 
@@ -71,7 +69,7 @@ public class KaplanMeierVariableBaseVector {
         ResultSet[] originResultSets = null;
         
         
-        Optional<ResultSet[]> optionalResultSet = cubeServerClient.getCubeData( cubeName, baseVector, drillVectorsComrressOneString);
+        Optional<ResultSet[]> optionalResultSet = CubeServerClient.getCubeData(cubeServerUri, cubeName, baseVector, drillVectorsComrressOneString);
         if (optionalResultSet.isPresent()) {
             originResultSets = optionalResultSet.get();
         }
@@ -79,7 +77,7 @@ public class KaplanMeierVariableBaseVector {
         drillVectorsComrressOneString = DrillVectorCompressor.compressDrillVectorsInOneString(auxDrillVectorsArray);
         
         ResultSet[] auxResultSets = null;
-        optionalResultSet = cubeServerClient.getCubeData( cubeName, baseVector, drillVectorsComrressOneString);
+        optionalResultSet = CubeServerClient.getCubeData(cubeServerUri, cubeName, baseVector, drillVectorsComrressOneString);
         if (optionalResultSet.isPresent()) {
             auxResultSets = optionalResultSet.get();
         }

@@ -6,6 +6,7 @@ import hu.agnos.cube.meta.dto.CubeList;
 import hu.agnos.report.server.util.CubeServerClient;
 import hu.mi.agnos.report.entity.Report;
 import hu.mi.agnos.report.repository.ReportRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +21,9 @@ import org.springframework.stereotype.Component;
 @Component
 @Configuration
 public class ReportServerConfiguration {
+    @Value("${agnos.cube.server.uri}")
+    private String cubeServerUri ;
+
 
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertyPlaceholderConfigurer() {
@@ -35,7 +39,7 @@ public class ReportServerConfiguration {
     @Bean
     @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
     public CubeList getCubeList() {
-        return CubeServerClient.getCubeList().orElse(null);
+        return CubeServerClient.getCubeList(cubeServerUri).orElse(null);
     }
 
 }

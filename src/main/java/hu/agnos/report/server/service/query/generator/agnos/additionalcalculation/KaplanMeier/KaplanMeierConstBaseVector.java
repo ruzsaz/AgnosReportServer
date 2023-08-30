@@ -44,7 +44,7 @@ public class KaplanMeierConstBaseVector {
     private CubeServerClient cubeServerClient;
 
     
-    public KaplanMeierConstBaseVector(int kaplanMeierDimensioIdx, int kaplanMeierMeasureIdx, String baseVector, String[] originDrillVectors, String cubeName, CubeServerClient cubeServerClient) {
+    public KaplanMeierConstBaseVector(int kaplanMeierDimensioIdx, int kaplanMeierMeasureIdx, String baseVector, String[] originDrillVectors, String cubeName) {
         this.kaplanMeierDimensioIdx = kaplanMeierDimensioIdx;
         this.kaplanMeierMeasureIdx = kaplanMeierMeasureIdx;
         this.baseVector = baseVector;
@@ -54,7 +54,7 @@ public class KaplanMeierConstBaseVector {
         this.cubeServerClient = cubeServerClient;
     }
 
-    public ResultSet[] process() {
+    public ResultSet[] process(String cubeServerUri) {
 
         ResultSet[] result = new ResultSet[originDrillVectors.length];
 
@@ -115,7 +115,7 @@ public class KaplanMeierConstBaseVector {
 
         ResultSet[] normalResultSets = null;
         
-        Optional<ResultSet[]> optionalResultSet = cubeServerClient.getCubeData(cubeName, baseVector, drillVectorsComrressOneString);
+        Optional<ResultSet[]> optionalResultSet = cubeServerClient.getCubeData(cubeServerUri, cubeName, baseVector, drillVectorsComrressOneString);
         if (optionalResultSet.isPresent()) {
             normalResultSets = optionalResultSet.get();
         }

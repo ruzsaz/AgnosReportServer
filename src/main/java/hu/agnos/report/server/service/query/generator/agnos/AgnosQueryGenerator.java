@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -31,8 +32,9 @@ public class AgnosQueryGenerator {
 
     private final static String SECONDARY_SEPARATOR = ":";
 
-    @Autowired
-    private CubeServerClient cubeServerClient;
+    @Value("${agnos.cube.server.uri}")
+    private String cubeServerUri;
+
 
     public AgnosQueryGenerator() {
     }
@@ -45,8 +47,8 @@ public class AgnosQueryGenerator {
         String cubeName = messageArray[0].split(SECONDARY_SEPARATOR)[0];
         String reportName = messageArray[0].split(SECONDARY_SEPARATOR)[1];
 
-        Optional<String[]> optionalHierarchyHeader = cubeServerClient.getCubeHierarchyHeader(cubeName);
-        Optional<String[]> optionalMeasureHeader = cubeServerClient.getCubeMeasureHeaderOfCube(cubeName);
+        Optional<String[]> optionalHierarchyHeader = CubeServerClient.getCubeHierarchyHeader(cubeServerUri, cubeName);
+        Optional<String[]> optionalMeasureHeader = CubeServerClient.getCubeMeasureHeaderOfCube(cubeServerUri, cubeName);
         Optional<Report> optionalReport = (new ReportRepository()).findById(cubeName, reportName);
         //Report report = ModelSingleton.getInstance().getReport(cubeName, reportName);        
         //Cube cube = MOLAPCubeSingleton.getCube(cubeName);       
@@ -88,13 +90,13 @@ public class AgnosQueryGenerator {
 
             if (report.isAdditionalCalculation()) {
                 if (report.getAdditionalCalculation().getFunction().equals("KaplanMeier")) {
-                    KaplanMeierMain kmAC = new KaplanMeierMain(report.getAdditionalCalculation().getArgs(), cubeName, hierarchyHeader, measureHeader, cubeServerClient);
+                    KaplanMeierMain kmAC = new KaplanMeierMain(report.getAdditionalCalculation().getArgs(), cubeName, hierarchyHeader, measureHeader, cubeServerUri);
                     resultSets = kmAC.process(newBaseVector, drillVectorsArray);
                 }
             } else {
                 //process
                 //TODO
-                Optional<ResultSet[]> optionalResultSet = cubeServerClient.getCubeData(cubeName, baseVector, drillVectorsComrressOneString);
+                Optional<ResultSet[]> optionalResultSet = CubeServerClient.getCubeData(cubeServerUri, cubeName, baseVector, drillVectorsComrressOneString);
                 if (optionalResultSet.isPresent()) {
                     resultSets = optionalResultSet.get();
                 }

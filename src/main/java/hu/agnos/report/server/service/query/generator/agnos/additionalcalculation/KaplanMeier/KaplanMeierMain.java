@@ -15,8 +15,8 @@ public class KaplanMeierMain extends AbstractAdditionalCalculation {
     private String kaplanMeierDimensioOriginBaseVectorValue;
     private int kaplanMeierDimensioLastLevelId;
 
-    public KaplanMeierMain(String args, String cubeName, String[] hierarchyHeader, String[] measureHeader, CubeServerClient cubeServerClient) {
-        super(args, cubeName, hierarchyHeader, measureHeader, cubeServerClient);
+    public KaplanMeierMain(String args, String cubeName, String[] hierarchyHeader, String[] measureHeader, String cubeServerUri) {
+        super(args, cubeName, hierarchyHeader, measureHeader, cubeServerUri);
         //ez az attribútum tényleges értékét a getNewBaseVectorForBaseVectorProcessor eljárásban kapja
         this.kaplanMeierDimensioOriginBaseVectorValue = null;
         kaplanMeierDimensioLastLevelId = -1;
@@ -60,8 +60,8 @@ public class KaplanMeierMain extends AbstractAdditionalCalculation {
         //ha nincs fúrva a Kaplan-Meire dimenzió mentén
         if (newBaseVector.equals(baseVector)) {
             KaplanMeierConstBaseVector kmcb = new KaplanMeierConstBaseVector(kaplanMeierDimensioIdx, kaplanMeierMeasureIdx, 
-                    baseVector, drillVectorsArray, cubeName, cubeServerClient);
-            ResultSet[] result = kmcb.process();
+                    baseVector, drillVectorsArray, cubeName);
+            ResultSet[] result = kmcb.process(cubeServerUri);
 //            long estimatedTime = System.nanoTime() - startTime;
 //            System.out.println("A konstans teljes eddig tartott: " + estimatedTime);
 
@@ -69,8 +69,8 @@ public class KaplanMeierMain extends AbstractAdditionalCalculation {
             //ha van fúrva a Kaplan-Meire dimenzió mentén
         } else {
             KaplanMeierVariableBaseVector kmvbv = new KaplanMeierVariableBaseVector(kaplanMeierDimensioIdx, kaplanMeierMeasureIdx, baseVector, 
-                    drillVectorsArray, this.cubeName, kaplanMeierDimensioLastLevelId, newBaseVector, cubeServerClient);
-            ResultSet[] result = kmvbv.process();
+                    drillVectorsArray, this.cubeName, kaplanMeierDimensioLastLevelId, newBaseVector);
+            ResultSet[] result = kmvbv.process(cubeServerUri);
 //            long estimatedTime = System.nanoTime() - startTime;
 //            System.out.println("A válltozó teljes eddig tartott: " + estimatedTime);
 
