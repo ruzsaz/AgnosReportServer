@@ -34,10 +34,6 @@ public class AccessRoleService {
     }
 
     private static boolean hasRole(SecurityContext context, String role) {
-        for (GrantedAuthority ga : context.getAuthentication().getAuthorities()){
-            logger.info("role: " + role + ", autority: " +  ga.getAuthority());
-        }
-
         if (context.getAuthentication() instanceof AnonymousAuthenticationToken) {
             return PUBLIC_ROLE.equalsIgnoreCase(role);
         }
