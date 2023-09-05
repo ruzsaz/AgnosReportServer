@@ -2,8 +2,8 @@ package hu.agnos.report.server.service;
 
 import hu.agnos.cube.meta.dto.CubeList;
 import hu.agnos.report.server.service.query.generator.agnos.AgnosQueryGenerator;
-import hu.mi.agnos.report.entity.Report;
-import hu.mi.agnos.report.exception.WrongCubeName;
+import hu.agnos.report.entity.Report;
+import hu.agnos.report.exception.WrongCubeName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

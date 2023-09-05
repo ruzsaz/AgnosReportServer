@@ -6,7 +6,7 @@
 package hu.agnos.report.server.service.query.generator;
 
 import hu.agnos.report.server.util.CubeQueryLocator;
-import hu.mi.agnos.report.entity.Report;
+import hu.agnos.report.entity.Report;
 
 
 /**

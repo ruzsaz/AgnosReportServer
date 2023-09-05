@@ -5,19 +5,18 @@
  */
 package hu.agnos.report.server.service.query.generator.agnos;
 
-import hu.agnos.report.server.service.query.generator.agnos.additionalcalculation.KaplanMeier.KaplanMeierMain;
-import hu.agnos.cube.driver.CubeHandler;
-import hu.agnos.cube.driver.ResultSet;
-import hu.agnos.report.server.util.CubeServerClient;
-import hu.agnos.report.server.util.DrillVectorCompressor;
-import hu.mi.agnos.report.entity.Report;
-import hu.mi.agnos.report.repository.ReportRepository;
-
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import hu.agnos.cube.driver.CubeHandler;
+import hu.agnos.cube.driver.ResultSet;
+import hu.agnos.report.entity.Report;
+import hu.agnos.report.repository.ReportRepository;
+import hu.agnos.report.server.service.query.generator.agnos.additionalcalculation.KaplanMeier.KaplanMeierMain;
+import hu.agnos.report.server.util.CubeServerClient;
+import hu.agnos.report.server.util.DrillVectorCompressor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 

@@ -8,10 +8,10 @@ package hu.agnos.report.server.service.query.generator.agnos;
 import hu.agnos.cube.driver.CubeHandler;
 import hu.agnos.cube.driver.ResultSet;
 import hu.agnos.cube.driver.zolikaokos.ResultElement;
-import hu.mi.agnos.report.entity.Hierarchy;
-import hu.mi.agnos.report.entity.Indicator;
-import hu.mi.agnos.report.entity.Measure;
-import hu.mi.agnos.report.entity.Report;
+import hu.agnos.report.entity.Hierarchy;
+import hu.agnos.report.entity.Indicator;
+import hu.agnos.report.entity.Measure;
+import hu.agnos.report.entity.Report;
 import java.util.List;
 
 /**

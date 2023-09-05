@@ -11,7 +11,7 @@ import java.util.Optional;
 import hu.agnos.report.server.service.AccessRoleService;
 import hu.agnos.report.server.service.DataService;
 import hu.agnos.report.server.service.ReportService;
-import hu.mi.agnos.report.entity.Report;
+import hu.agnos.report.entity.Report;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

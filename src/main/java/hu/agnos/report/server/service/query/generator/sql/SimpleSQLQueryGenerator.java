@@ -7,10 +7,10 @@ package hu.agnos.report.server.service.query.generator.sql;
 
 import hu.agnos.report.server.service.query.generator.AbstractQueryGenerator;
 import hu.agnos.report.server.util.CubeQueryLocator;
-import hu.mi.agnos.report.entity.Hierarchy;
-import hu.mi.agnos.report.entity.Level;
-import hu.mi.agnos.report.entity.Indicator;
-import hu.mi.agnos.report.entity.Report;
+import hu.agnos.report.entity.Hierarchy;
+import hu.agnos.report.entity.Level;
+import hu.agnos.report.entity.Indicator;
+import hu.agnos.report.entity.Report;
 
 import java.util.ArrayList;
 

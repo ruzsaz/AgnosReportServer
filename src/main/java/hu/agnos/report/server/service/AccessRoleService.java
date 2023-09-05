@@ -3,16 +3,14 @@ package hu.agnos.report.server.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import hu.mi.agnos.report.repository.ReportRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
-import hu.mi.agnos.report.entity.Report;
+import hu.agnos.report.entity.Report;
 
 
 @Service
