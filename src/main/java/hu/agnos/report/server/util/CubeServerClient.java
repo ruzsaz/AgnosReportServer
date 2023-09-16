@@ -19,18 +19,18 @@ import org.springframework.stereotype.Component;
 public class CubeServerClient {
 
     public static Optional<ResultSet[]> getCubeData(String cubeServerUri, String cubeName, String baseVector, String drillVectorsComrressOneString) {
-        return (new CubeClient()).getData(cubeServerUri, cubeName, baseVector, drillVectorsComrressOneString);
+        return (new CubeClient(cubeServerUri)).getData(cubeName, baseVector, drillVectorsComrressOneString);
     }
 
     public static Optional<String[]> getCubeHierarchyHeader(String cubeServerUri, String cubeName) {
-        return (new CubeClient()).getHierarchyHeaderOfCube(cubeServerUri, cubeName);
+        return (new CubeClient(cubeServerUri)).getHierarchyHeaderOfCube(cubeName);
     }
 
     public static Optional<String[]> getCubeMeasureHeaderOfCube(String cubeServerUri, String cubeName) {
-        return (new CubeClient()).getMeasureHeaderOfCube(cubeServerUri, cubeName);
+        return (new CubeClient(cubeServerUri)).getMeasureHeaderOfCube(cubeName);
     }
 
     public static Optional<CubeList> getCubeList(String cubeServerUri) {
-        return (new CubeClient()).getCubesNameAndDate(cubeServerUri);
+        return (new CubeClient(cubeServerUri)).getCubesNameAndDate();
     }
 }
