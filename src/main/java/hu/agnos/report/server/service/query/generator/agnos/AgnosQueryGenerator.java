@@ -12,6 +12,7 @@ import java.util.Optional;
 
 import hu.agnos.cube.driver.CubeHandler;
 import hu.agnos.cube.driver.ResultSet;
+import hu.agnos.report.entity.AdditionalCalculation;
 import hu.agnos.report.entity.Report;
 import hu.agnos.report.repository.ReportRepository;
 import hu.agnos.report.server.service.query.generator.agnos.additionalcalculation.KaplanMeier.KaplanMeierMain;
@@ -88,8 +89,9 @@ public class AgnosQueryGenerator {
             ResultSet[] resultSets = null;
 
             if (report.isAdditionalCalculation()) {
-                if (report.getAdditionalCalculation().getFunction().equals("KaplanMeier")) {
-                    KaplanMeierMain kmAC = new KaplanMeierMain(report.getAdditionalCalculation().getArgs(), cubeName, hierarchyHeader, measureHeader, cubeServerUri);
+                AdditionalCalculation addCal = report.getAdditionalCalculation();
+                if (addCal.getFunction().equalsIgnoreCase("KaplanMeier")) {
+                    KaplanMeierMain kmAC = new KaplanMeierMain(addCal.getArgs(), cubeName, hierarchyHeader, measureHeader, cubeServerUri);
                     resultSets = kmAC.process(newBaseVector, drillVectorsArray);
                 }
             } else {
