@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package hu.agnos.report.server.service;
 
 import java.util.List;
@@ -9,9 +5,11 @@ import java.util.List;
 import hu.agnos.cube.meta.dto.CubeList;
 import hu.agnos.cube.meta.dto.CubeNameAndDate;
 import hu.agnos.report.entity.Report;
+import hu.agnos.report.server.entity.ReportList;
 import hu.agnos.report.server.service.query.generator.agnos.AgnosQueryGenerator;
 import hu.agnos.report.util.JsonMarshaller;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Service;
 
@@ -23,10 +21,13 @@ import org.springframework.stereotype.Service;
 public class ReportService {
 
     @Autowired
-    List<Report> reportList;
+    ReportList reportList;
 
     @Autowired
     CubeList cubeList;
+
+    @Autowired
+    private ApplicationContext applicationContext;
     
     //TODO: vajaon ez jó-e így, konkurens futásnál lehet-e baj?
     //TODO: Az egészet static-á kéne alakítani
@@ -44,7 +45,7 @@ public class ReportService {
         String origin = new String(s);
 
         //for (Cube cube : instance.values()) {            
-        for (Report report : AccessRoleService.availableForContext(context, this.reportList)) {
+        for (Report report : AccessRoleService.availableForContext(context, this.reportList.getReportList())) {
 
             String reportString = JsonMarshaller.getJSONHeader(report) + ",";
 
@@ -81,7 +82,7 @@ public class ReportService {
 
     private Report getReportEntity(String cubeUniqueName, String reportUniqueName) {
         Report result = null;
-        for (Report r : reportList) {
+        for (Report r : reportList.getReportList()) {
             if (r.getName().equalsIgnoreCase(reportUniqueName)
                     && r.getCubeName().equalsIgnoreCase(cubeUniqueName)) {
                 result = r;

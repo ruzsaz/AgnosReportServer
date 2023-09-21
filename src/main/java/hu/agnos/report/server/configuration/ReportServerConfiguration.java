@@ -21,19 +21,13 @@ import org.springframework.stereotype.Component;
 @Component
 @Configuration
 public class ReportServerConfiguration {
+
     @Value("${agnos.cube.server.uri}")
     private String cubeServerUri ;
-
 
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertyPlaceholderConfigurer() {
         return new PropertySourcesPlaceholderConfigurer();
-    }
-
-    @Bean
-    @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
-    public List<Report> getReportList() {
-        return (new ReportRepository()).findAll();
     }
 
     @Bean
