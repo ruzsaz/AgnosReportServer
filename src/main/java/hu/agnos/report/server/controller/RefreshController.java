@@ -1,13 +1,11 @@
 package hu.agnos.report.server.controller;
 
-import java.util.List;
-
-import hu.agnos.report.entity.Report;
-import hu.agnos.report.repository.ReportRepository;
+import hu.agnos.cube.meta.dto.CubeList;
 import hu.agnos.report.server.entity.ReportList;
+import hu.agnos.report.server.util.CubeServerClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -16,9 +14,28 @@ public class RefreshController {
 	@Autowired
 	ReportList reportList;
 
-	@GetMapping("/refresh")
+	@Autowired
+	CubeList cubeList;
+
+	@Value("${agnos.cube.server.uri}")
+	private String cubeServerUri ;
+
+	@PostMapping("/refresh")
 	public String refresh() {
-		reportList.init();
+		refreshCubeList();
+		refreshReports(cubeList);
 		return "Refreshed";
 	}
+
+	private void refreshReports(CubeList cubeList) {
+		reportList.init(cubeList);
+	}
+
+	private void refreshCubeList() {
+		CubeList tmpCubeList = CubeServerClient.getCubeList(cubeServerUri).orElse(null);
+		if (cubeList != null && tmpCubeList != null) {
+			cubeList.setCubesNameAndDate(tmpCubeList.getCubesNameAndDate());
+		}
+	}
+
 }

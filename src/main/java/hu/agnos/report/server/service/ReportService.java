@@ -28,12 +28,9 @@ public class ReportService {
 
     @Autowired
     private ApplicationContext applicationContext;
-    
-    //TODO: vajaon ez jó-e így, konkurens futásnál lehet-e baj?
-    //TODO: Az egészet static-á kéne alakítani
+
     @Autowired
     AgnosQueryGenerator agnosQueryGenerator;
-
 
     public String getReport(String cubeUniqueName, String reportUniqueName) {
         return JsonMarshaller.getJSONFull(getReportEntity(cubeUniqueName, reportUniqueName));
@@ -44,7 +41,6 @@ public class ReportService {
         String s = "{\"reports\":[";
         String origin = new String(s);
 
-        //for (Cube cube : instance.values()) {            
         for (Report report : AccessRoleService.availableForContext(context, this.reportList.getReportList())) {
 
             String reportString = JsonMarshaller.getJSONHeader(report) + ",";
@@ -60,11 +56,8 @@ public class ReportService {
             }
 
             reportString = reportString.replaceAll("ValueOfUpdatedIsOnlyRevealedAtRuntime", createdDateString);
-            //if (Authorizator.hasPermission(username, report.getRoleToAccess())) {
-                s += reportString;
-            //}                
+            s += reportString;
         }
-        //}
 
         if (!origin.equals(s)) {
             s = s.substring(0, (s.length() - 1));

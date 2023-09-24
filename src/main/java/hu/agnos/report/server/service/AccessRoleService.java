@@ -17,14 +17,12 @@ import hu.agnos.report.entity.Report;
 @Component
 public class AccessRoleService {
 
-    private static final Logger logger = LoggerFactory.getLogger(AccessRoleService.class);;
+    private static final Logger logger = LoggerFactory.getLogger(AccessRoleService.class);
 
     @Value("${public-role}")
     private String publicRole;
 
     private static String PUBLIC_ROLE;
-
-
 
     @Value("${public-role}")
     public void setPublicRoleStatic(String publicRole){
@@ -35,20 +33,15 @@ public class AccessRoleService {
         if (context.getAuthentication() instanceof AnonymousAuthenticationToken) {
             return PUBLIC_ROLE.equalsIgnoreCase(role);
         }
-
-
         return context.getAuthentication().getAuthorities().stream().anyMatch(aut -> aut.getAuthority().equalsIgnoreCase(role));
     }
 
     public static boolean reportAccessible(SecurityContext context, Report report) {
-        return hasRole(context, report.getRoleToAccess());
+        return hasRole(context, report.getRoleToAccess()) && !report.isBroken();
     }
 
     public static List<Report> availableForContext(SecurityContext context, List<Report> original) {
-
-
-        List<Report> result = original.stream().filter(r -> hasRole(context, r.getRoleToAccess())).collect(Collectors.toList());
-        return result;
+        return original.stream().filter(r -> reportAccessible(context, r)).collect(Collectors.toList());
     }
 
 }

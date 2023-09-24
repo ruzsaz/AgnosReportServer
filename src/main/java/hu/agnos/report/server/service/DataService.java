@@ -8,13 +8,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class DataService {
 
-
     @Autowired
     ReportService reportService;
 
     @Autowired
     AgnosQueryGenerator agnosQueryGenerator;
-
 
     public String getData(String queries) throws Exception {
         Report report = reportService.getReportEntity(queries);
