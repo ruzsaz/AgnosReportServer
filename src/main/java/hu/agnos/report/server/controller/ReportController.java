@@ -40,6 +40,8 @@ public class ReportController {
     ResponseEntity<?> getData(@RequestParam(value = "queries", required = false) String encodedQueries) throws Exception {
         String queries = new String(Base64.getDecoder().decode(encodedQueries));
         Report report = cubeService.getReportEntity(queries);
+        String userName = AccessRoleService.getUserName(SecurityContextHolder.getContext());
+        log.info("Data retrieval request from user {}", userName);
         if (AccessRoleService.reportAccessible(SecurityContextHolder.getContext(), report)) {
             String resultSet = dataService.getData(queries);
             Optional<String> result = Optional.ofNullable(resultSet);

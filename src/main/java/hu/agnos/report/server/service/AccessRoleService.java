@@ -44,4 +44,11 @@ public class AccessRoleService {
         return original.stream().filter(r -> reportAccessible(context, r)).collect(Collectors.toList());
     }
 
+    public static String getUserName(SecurityContext context) {
+        if (context.getAuthentication() instanceof AnonymousAuthenticationToken) {
+            return "anonymous";
+        }
+        return context.getAuthentication().getName();
+    }
+
 }
