@@ -31,7 +31,7 @@ public class CubeQueryLocator {
         this.drillVector = new int[dimNumber];
 
         for (int i = 0; i < dimNumber; i++) {
-            this.baseLevelString[i] = (baseSplitted.length <= i || baseSplitted[i].length() == 0) ? new String[]{} : baseSplitted[i].split(",");
+            this.baseLevelString[i] = (baseSplitted.length <= i || baseSplitted[i].isEmpty()) ? new String[]{} : baseSplitted[i].split(",");
             this.drillVector[i] = Integer.parseInt(drillSplitted[i]);
         }
     }

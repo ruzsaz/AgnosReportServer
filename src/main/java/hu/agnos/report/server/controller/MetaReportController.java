@@ -9,6 +9,8 @@ import java.util.Base64;
 import java.util.Optional;
 
 import hu.agnos.report.server.service.ReportService;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class MetaReportController {
 
+    private final org.slf4j.Logger log = LoggerFactory.getLogger(MetaReportController.class);
+
     @Autowired
     private ReportService cubeService;
 
@@ -34,6 +38,9 @@ public class MetaReportController {
         String reportUniqueName = cubeName.split(":")[1];
         String fullReport = cubeService.getReport(cubeUniqueName, reportUniqueName);
         Optional<String> result = Optional.ofNullable(fullReport);
+        MDC.put("report", reportUniqueName);
+        MDC.put("type", "report");
+        log.info("Report opening");
         return result.map(response -> ResponseEntity.ok().body(response))
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }

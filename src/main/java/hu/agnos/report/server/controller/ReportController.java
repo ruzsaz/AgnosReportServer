@@ -8,11 +8,12 @@ package hu.agnos.report.server.controller;
 import java.util.Base64;
 import java.util.Optional;
 
+import hu.agnos.report.entity.Report;
 import hu.agnos.report.server.service.AccessRoleService;
 import hu.agnos.report.server.service.DataService;
 import hu.agnos.report.server.service.ReportService;
-import hu.agnos.report.entity.Report;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,14 +41,17 @@ public class ReportController {
     ResponseEntity<?> getData(@RequestParam(value = "queries", required = false) String encodedQueries) throws Exception {
         String queries = new String(Base64.getDecoder().decode(encodedQueries));
         Report report = cubeService.getReportEntity(queries);
-        String userName = AccessRoleService.getUserName(SecurityContextHolder.getContext());
-        log.info("Data retrieval request from user {}", userName);
+        MDC.put("report", report.getName());
         if (AccessRoleService.reportAccessible(SecurityContextHolder.getContext(), report)) {
             String resultSet = dataService.getData(queries);
             Optional<String> result = Optional.ofNullable(resultSet);
+            MDC.put("type", "data");
+            log.info("Successful data access");
             return result.map(response -> ResponseEntity.ok().body(response))
                     .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
         }
+        MDC.put("type", "unauthorized");
+        log.debug("Unauthorized data access attempt");
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
