@@ -12,6 +12,9 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
+import lombok.Getter;
+import lombok.Setter;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -109,6 +112,7 @@ public class SecurityConfiguration {
         return provider;
     }
 
+    @Getter
     @Configuration
     @ConfigurationProperties(prefix = "auth-issuer")
     static class IssuerProperties {
@@ -119,40 +123,27 @@ public class SecurityConfiguration {
 
         private String usernameJsonPath = JwtClaimNames.SUB;
 
-        public URL getUri() {
-            return uri;
-        }
-
         public void setUri(URL uri) {
             this.uri = uri;
-        }
-
-        public ClaimMappingProperties[] getClaims() {
-            return claims;
         }
 
         public void setClaims(ClaimMappingProperties[] claims) {
             this.claims = claims;
         }
 
-        public String getUsernameJsonPath() {
-            return usernameJsonPath;
-        }
-
         public void setUsernameJsonPath(String usernameJsonPath) {
             this.usernameJsonPath = usernameJsonPath;
         }
 
+        @Getter
+        @Setter
         static class ClaimMappingProperties {
             private String jsonPath;
 
-            public void setJsonPath(String jsonPath) {
-                this.jsonPath = jsonPath;
-            }
+            //public void setJsonPath(String jsonPath) {
+            //    this.jsonPath = jsonPath;
+            //}
 
-            public String getJsonPath() {
-                return jsonPath;
-            }
         }
     }
 
@@ -165,7 +156,7 @@ public class SecurityConfiguration {
 
         @Override
         @SuppressWarnings({"rawtypes", "unchecked"})
-        public Collection<? extends GrantedAuthority> convert(Jwt jwt) {
+        public Collection<? extends GrantedAuthority> convert(@NotNull Jwt jwt) {
             return Stream.of(properties.claims).flatMap(claimProperties -> {
                 Object claim;
                 try {
@@ -209,7 +200,7 @@ public class SecurityConfiguration {
         }
 
         @Override
-        public JwtAuthenticationToken convert(Jwt jwt) {
+        public JwtAuthenticationToken convert(@NotNull Jwt jwt) {
             final var authorities = new JwtGrantedAuthoritiesConverter(issuerProperties).convert(jwt);
             final String username = JsonPath.read(jwt.getClaims(), issuerProperties.getUsernameJsonPath());
             return new JwtAuthenticationToken(jwt, authorities, username);

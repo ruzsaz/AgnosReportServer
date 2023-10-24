@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package hu.agnos.report.server.controller;
 
 import hu.agnos.report.server.service.ReportService;
@@ -30,7 +25,7 @@ public class MetaReportsController {
     @Autowired
     private ReportService reportService;
 
-    @GetMapping(value = "/meta/cubes", produces = "application/json")
+    @GetMapping(value = "reports", produces = "application/json")
     ResponseEntity<?> getCubeList() {
         String jsonCubesHeader = reportService.getReportsHeader(SecurityContextHolder.getContext());
         Optional<String> result = Optional.ofNullable(jsonCubesHeader);

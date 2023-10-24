@@ -1,13 +1,10 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package hu.agnos.report.server.controller;
 
 import java.util.Base64;
 import java.util.Optional;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import hu.agnos.cube.meta.drillDto.ReportQuery;
 import hu.agnos.report.entity.Report;
 import hu.agnos.report.server.service.AccessRoleService;
 import hu.agnos.report.server.service.DataService;
@@ -32,18 +29,23 @@ public class ReportController {
     private final org.slf4j.Logger log = LoggerFactory.getLogger(ReportController.class);
 
     @Autowired
-    private ReportService cubeService;
+    private ReportService reportService;
 
     @Autowired
     private DataService dataService;
 
-    @GetMapping(value = "/cube", produces = "application/json")
+    @GetMapping(value = "/report", produces = "application/json")
     ResponseEntity<?> getData(@RequestParam(value = "queries", required = false) String encodedQueries) throws Exception {
         String queries = new String(Base64.getDecoder().decode(encodedQueries));
-        Report report = cubeService.getReportEntity(queries);
+        System.out.println(queries);
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        ReportQuery query = objectMapper.readValue(queries, ReportQuery.class);
+        Report report = reportService.getReportByName(query.reportName());
         MDC.put("report", report.getName());
+
         if (AccessRoleService.reportAccessible(SecurityContextHolder.getContext(), report)) {
-            String resultSet = dataService.getData(queries);
+            String resultSet = dataService.getData(report, query);
             Optional<String> result = Optional.ofNullable(resultSet);
             MDC.put("type", "data");
             log.info("Successful data access");

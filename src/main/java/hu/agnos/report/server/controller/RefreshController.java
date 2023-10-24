@@ -25,7 +25,7 @@ public class RefreshController {
 
 	@PostMapping("/refresh")
 	public String refresh() {
-		// TODO: jogosultság ellenőrzése?
+		// TODO: check for credentials?
 		refreshCubeList();
 		refreshReports(cubeList);
 		log.info("Reports refreshed");

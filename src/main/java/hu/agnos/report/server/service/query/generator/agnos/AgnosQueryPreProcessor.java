@@ -15,22 +15,22 @@ public class AgnosQueryPreProcessor {
          
         String[] baseVectorArray = baseVector.split(":", -1);
         StringBuilder newBaseVectorSB = new StringBuilder();
-        for (int i = 0; i < temp.length; i++) {
-            int newIdx = temp[i];
-            if (newIdx >= 0) {
-                newBaseVectorSB.append(baseVectorArray[newIdx]).append(":");
-            } else {
-                newBaseVectorSB.append(":");
-            }
-        }
+         for (int newIdx : temp) {
+             if (newIdx >= 0) {
+                 newBaseVectorSB.append(baseVectorArray[newIdx]).append(":");
+             } else {
+                 newBaseVectorSB.append(":");
+             }
+         }
         return newBaseVectorSB.substring(0, newBaseVectorSB.length() - 1);
     }
+
+
 
     protected String drillVectorConverter(int[] temp, String drillVector) {
         String[] drillVectorArray = drillVector.split(":", -1);
         StringBuilder newDrillVectorSB = new StringBuilder();
-        for (int i = 0; i < temp.length; i++) {
-            int newIdx = temp[i];
+        for (int newIdx : temp) {
             if (newIdx >= 0) {
                 newDrillVectorSB.append(drillVectorArray[newIdx]).append(":");
             } else {
