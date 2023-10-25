@@ -13,6 +13,7 @@ import hu.agnos.cube.driver.ResultSet;
 import hu.agnos.cube.driver.zolikaokos.ResultElement;
 import hu.agnos.cube.meta.drillDto.DrillVector;
 import hu.agnos.cube.meta.drillDto.ReportQuery;
+import hu.agnos.molap.dimension.DimValue;
 import hu.agnos.report.entity.Cube;
 import hu.agnos.report.entity.Hierarchy;
 import hu.agnos.report.entity.Indicator;
@@ -50,9 +51,9 @@ public class ResponseConverter {
     }
 
     private AnswerForSingleDrill getAnswerForDrill(List<String> drillName, Map<String, ResultSet> matchingResultSets) {
-        List<List<String>> fullDimensionProductSet = getFullDimensionProductSet(drillName, matchingResultSets);
+        List<List<DimValue>> fullDimensionProductSet = getFullDimensionProductSet(drillName, matchingResultSets);
         List<DimsAndValues> dataRows = new ArrayList<>();
-        for (List<String> resultRowDimensionValues : fullDimensionProductSet) {
+        for (List<DimValue> resultRowDimensionValues : fullDimensionProductSet) {
             dataRows.add(getMatchingResultValuesFromAllCubes(drillName, resultRowDimensionValues, matchingResultSets));
         }
 
@@ -68,14 +69,14 @@ public class ResponseConverter {
         return String.join(":", resultArray);
     }
 
-    private DimsAndValues getMatchingResultValuesFromAllCubes(List<String> drillName, List<String> resultRowDimValues, Map<String, ResultSet> matchingResultSets) {
+    private DimsAndValues getMatchingResultValuesFromAllCubes(List<String> drillName, List<DimValue> resultRowDimValues, Map<String, ResultSet> matchingResultSets) {
 
         // Get the matching dataRowByCubeName value rows for each cube.
         // TODO: extract to a separate method
         Map<String, double[]> dataRowByCubeName = new HashMap<>();
         for (Cube cube : report.getCubes()) {
             ResultSet rs = matchingResultSets.get(cube.getName());
-            String[] matchPattern = getMatchPattern(drillName, resultRowDimValues, rs.getName());
+            DimValue[] matchPattern = getMatchPattern(drillName, resultRowDimValues, rs.getName());
             dataRowByCubeName.put(cube.getName(), getMatchingResultValues(matchPattern, rs));
         }
 
@@ -106,7 +107,7 @@ public class ResponseConverter {
         return new DimsAndValues(dimElements, valueElementList);
     }
 
-    private double[] getMatchingResultValues(String[] matchPattern, ResultSet resultSet) {
+    private double[] getMatchingResultValues(DimValue[] matchPattern, ResultSet resultSet) {
         for (ResultElement element : resultSet.getResponse()) {
             if (isMatches(matchPattern, element)) {
                 return element.getMeasureValues();
@@ -123,7 +124,7 @@ public class ResponseConverter {
      * @param element Single result element from a resultSet
      * @return True of matches, false if not
      */
-    private boolean isMatches(String[] matchPattern, ResultElement element) {
+    private boolean isMatches(DimValue[] matchPattern, ResultElement element) {
         for (int i = 0; i < matchPattern.length; i++) {
             if (matchPattern[i] != null && !Objects.equals(matchPattern[i], element.getHeader()[i])) {
                 return false;
@@ -139,9 +140,9 @@ public class ResponseConverter {
      * @param cubeDrillName Drill string of the cube (e.g. '0:TERULETI_HIER:0')
      * @return The dim-matching-pattern (e.g. null, '{"id":"2","knownId":"03","name":"Békés"}', null)
      */
-    private String[] getMatchPattern(List<String> dimNames, List<String> dimValues, String cubeDrillName) {
+    private DimValue[] getMatchPattern(List<String> dimNames, List<DimValue> dimValues, String cubeDrillName) {
         String[] dimValuesAsArray = cubeDrillName.split(":");
-        String[] pattern = new String[dimValuesAsArray.length];
+        DimValue[] pattern = new DimValue[dimValuesAsArray.length];
         for (int i = 0; i < dimNames.size(); i++) {
             int positionInDrillVector = Arrays.asList(dimValuesAsArray).indexOf(dimNames.get(i));
             if (positionInDrillVector >= 0) {
@@ -160,8 +161,8 @@ public class ResponseConverter {
      * @param matchingResultSets List of result sets (from different cubes)
      * @return The all possible dimension value combinations
      */
-    private List<List<String>> getFullDimensionProductSet(List<String> drillName, Map<String, ResultSet> matchingResultSets) {
-        List<Set<String>> dimValuesinDrill = new ArrayList<>();
+    private List<List<DimValue>> getFullDimensionProductSet(List<String> drillName, Map<String, ResultSet> matchingResultSets) {
+        List<Set<DimValue>> dimValuesinDrill = new ArrayList<>();
         for (String drillDimensionName : drillName) {
             dimValuesinDrill.add(ExtractDimensionValues(drillDimensionName, matchingResultSets));
         }
@@ -176,8 +177,8 @@ public class ResponseConverter {
      * @param resultSets List of resultSet to look in for dimension values
      * @return Set of the occurring dimension values
      */
-    private Set<String> ExtractDimensionValues(String dimName, Map<String, ResultSet> resultSets) {
-        Set<String> dimensionValues = new HashSet<>();
+    private Set<DimValue> ExtractDimensionValues(String dimName, Map<String, ResultSet> resultSets) {
+        Set<DimValue> dimensionValues = new HashSet<>();
         for (ResultSet resultSet : resultSets.values()) {
             int positionInDrillVector = Arrays.asList(resultSet.getName().split(":")).indexOf(dimName);
             if (positionInDrillVector >= 0) {

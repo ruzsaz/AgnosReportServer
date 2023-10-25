@@ -23,7 +23,7 @@ public class KaplenMaierSortbyKnownId  implements Comparator<KaplenMaierValue> {
                     result = a.kaplenMaierDimensionKnownId.compareTo(b.kaplenMaierDimensionKnownId);
                 } else {
                     int idx = a.sortOrder[i];
-                    int subResult = a.row.getHeader()[idx].compareTo(b.row.getHeader()[idx]);
+                    int subResult = a.row.getHeader()[idx].knownId().compareTo(b.row.getHeader()[idx].knownId());
                     if (subResult != 0) {
                         result = subResult;
                         break;

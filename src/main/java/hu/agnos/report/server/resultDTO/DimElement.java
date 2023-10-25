@@ -1,18 +1,15 @@
 package hu.agnos.report.server.resultDTO;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hu.agnos.molap.dimension.DimValue;
 
+// TODO: lehet, hogy erre nincs is szükség, hisz ugyanaz mint a DimValue?
 public record DimElement(String id, String knownId, String name) {
 
     static ObjectMapper mapper = new ObjectMapper();
 
-    public static DimElement from(String s) {
-        try {
-            return new DimElement(mapper.readTree(s).get("id").asText(), mapper.readTree(s).get("knownId").asText(), mapper.readTree(s).get("name").asText());
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+    public static DimElement from(DimValue s) {
+        return new DimElement(s.id(), s.knownId(), s.name());
     }
 
 }

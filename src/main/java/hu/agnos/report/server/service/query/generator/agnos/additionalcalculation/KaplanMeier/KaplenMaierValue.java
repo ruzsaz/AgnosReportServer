@@ -23,10 +23,9 @@ public class KaplenMaierValue {
         this.sortOrder = sortOrder;
 
 //            System.out.println("this.row.Header: " + this.row.printHeader());
-        String[] kaplanMeierDimensioArray = this.row.getHeader()[kaplanMeierDimensioIdx].split(",", -1);
-        String idAsString = kaplanMeierDimensioArray[0].split(":", -1)[1];
+        String idAsString = this.row.getHeader()[kaplanMeierDimensioIdx].id();
 
         kaplenMaierDimensionId = Integer.parseInt(idAsString.substring(1, idAsString.length() - 1));
-        kaplenMaierDimensionKnownId = kaplanMeierDimensioArray[1].split(":", -1)[1];
+        kaplenMaierDimensionKnownId = this.row.getHeader()[kaplanMeierDimensioIdx].knownId();
     }
 }
