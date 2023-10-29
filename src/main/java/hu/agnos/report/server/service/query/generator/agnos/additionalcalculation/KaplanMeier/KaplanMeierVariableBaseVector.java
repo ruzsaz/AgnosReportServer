@@ -1,17 +1,16 @@
- 
 package hu.agnos.report.server.service.query.generator.agnos.additionalcalculation.KaplanMeier;
 
-import hu.agnos.cube.driver.ResultSet;
-import hu.agnos.cube.driver.zolikaokos.ResultElement;
-import hu.agnos.cube.meta.http.CubeClient;
-import hu.agnos.report.server.util.CubeServerClient;
-import hu.agnos.report.server.util.DrillVectorCompressor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
+import hu.agnos.cube.meta.dto.ResultElement;
+import hu.agnos.cube.meta.dto.ResultSet;
+import hu.agnos.report.server.util.CubeServerClient;
+import hu.agnos.report.server.util.DrillVectorCompressor;
 
 /**
  *
@@ -23,12 +22,12 @@ public class KaplanMeierVariableBaseVector {
 
     private int kaplanMeierDimensioIdx;
     private int kaplanMeierMeasureIdx;
-    private String baseVector;
-    private String[] originDrillVectors;
-    private String cubeName;
-    private int kaplanMeierDimensioLastLevelId;
+    private final String baseVector;
+    private final String[] originDrillVectors;
+    private final String cubeName;
+    private final int kaplanMeierDimensioLastLevelId;
     private String auxBaseVector;
-    private KaplanMeierTool tool;
+    private final KaplanMeierTool tool;
 
 
     public KaplanMeierVariableBaseVector(int kaplanMeierDimensioIdx, int kaplanMeierMeasureIdx, String baseVector, String[] originDrillVectors,
@@ -85,17 +84,17 @@ public class KaplanMeierVariableBaseVector {
         HashMap<String, KaplenMaierValue[]> sortedOriginRawResults = new HashMap<>();
 
         for (ResultSet rs : originResultSets) {
-            String name = rs.getName();
-            KaplenMaierValue[] r = tool.getSortedResult(rs);
-            sortedOriginRawResults.put(name, r);
+//            String name = rs.name();
+//            KaplenMaierValue[] r = tool.getSortedResult(rs);
+//            sortedOriginRawResults.put(name, r);
         }
         
         HashMap<String, KaplenMaierValue[]> sortedAuxRawResults = new HashMap<>();
         
         for (ResultSet rs : auxResultSets) {
-            String name = rs.getName();
-            KaplenMaierValue[] r = tool.getSortedResult(rs);
-            sortedAuxRawResults.put(name, r);
+//            String name = rs.name();
+//            KaplenMaierValue[] r = tool.getSortedResult(rs);
+//            sortedAuxRawResults.put(name, r);
         }
        
         int cnt = 0;
@@ -127,8 +126,9 @@ public class KaplanMeierVariableBaseVector {
         List<ResultElement> auxElements = getKMProcessedSelectedResponse(auxRs);
         List<ResultElement> finalElements = tool.mergedResultElementLists(finalRs, auxElements);
 
-        result = new ResultSet(finalName);
-        result.setResponse(finalElements);
+        // TODO: ez a két null azért van itt, hogy forduljon... átgondolni
+        result = null;
+        //result.setResponse(finalElements);
 
         return result;
     }
@@ -158,11 +158,11 @@ public class KaplanMeierVariableBaseVector {
                 produktum = 1.0;
             }
             
-            produktum = produktum * k.row.getMeasureValues()[this.kaplanMeierMeasureIdx];
+            produktum = produktum * k.row.measureValues()[this.kaplanMeierMeasureIdx];
             
             if(k.kaplenMaierDimensionId == this.kaplanMeierDimensioLastLevelId){
                 ResultElement tempRow = k.row.deepCopy();
-                tempRow.getMeasureValues()[this.kaplanMeierMeasureIdx] = produktum;
+                tempRow.measureValues()[this.kaplanMeierMeasureIdx] = produktum;
                 result.add(tempRow);
             }            
             lastKaplanMeierDimensionId = k.kaplenMaierDimensionId;

@@ -1,11 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package hu.agnos.report.server.service.query.generator.agnos.additionalcalculation.KaplanMeier;
 
-import hu.agnos.cube.driver.zolikaokos.ResultElement;
+
+import hu.agnos.cube.meta.dto.ResultElement;
 
 /**
  *
@@ -23,9 +19,9 @@ public class KaplenMaierValue {
         this.sortOrder = sortOrder;
 
 //            System.out.println("this.row.Header: " + this.row.printHeader());
-        String idAsString = this.row.getHeader()[kaplanMeierDimensioIdx].id();
+        //String idAsString = this.row.header()[kaplanMeierDimensioIdx].id().toString();
 
-        kaplenMaierDimensionId = Integer.parseInt(idAsString.substring(1, idAsString.length() - 1));
-        kaplenMaierDimensionKnownId = this.row.getHeader()[kaplanMeierDimensioIdx].knownId();
+        //kaplenMaierDimensionId = Integer.parseInt(idAsString.substring(1, idAsString.length() - 1));
+        //kaplenMaierDimensionKnownId = this.row.header()[kaplanMeierDimensioIdx].knownId();
     }
 }

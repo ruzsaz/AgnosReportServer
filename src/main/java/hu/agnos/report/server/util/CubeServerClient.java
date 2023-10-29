@@ -1,12 +1,23 @@
 package hu.agnos.report.server.util;
 
-import java.util.List;
-import java.util.Optional;
+import static java.time.temporal.ChronoUnit.SECONDS;
 
-import hu.agnos.cube.driver.ResultSet;
-import hu.agnos.cube.meta.drillDto.ReportQuery;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import hu.agnos.cube.meta.drillDto.CubeQuery;
 import hu.agnos.cube.meta.dto.CubeList;
-import hu.agnos.cube.meta.http.CubeClient;
+import hu.agnos.cube.meta.dto.ResultSet;
+import org.apache.http.client.utils.URIBuilder;
 
 /**
  *
@@ -15,23 +26,46 @@ import hu.agnos.cube.meta.http.CubeClient;
 
 public class CubeServerClient {
 
+    // TODO: nem kéne new cubeservice... sőt, az egész osztály nem kéne
+
     public static Optional<ResultSet[]> getCubeData(String cubeServerUri, String cubeName, String baseVector, String drillVectorsComrressOneString) {
         return null;
     }
 
-    public static Optional<ResultSet[]> getCubeData(String cubeServerUri, String cubeName, ReportQuery query) {
-        return (new CubeClient(cubeServerUri)).getData(cubeName, query);
-    }
+    public static ResultSet[] getCubeData(String cubeServerUri, CubeQuery cubeQuery) {
+        try {
+            String body = new ObjectMapper().writeValueAsString(cubeQuery);
 
-    public static Optional<List<String>> getCubeHierarchyHeader(String cubeServerUri, String cubeName) {
-        return (new CubeClient(cubeServerUri)).getHierarchyHeaderOfCube(cubeName);
-    }
-
-    public static Optional<String[]> getCubeMeasureHeaderOfCube(String cubeServerUri, String cubeName) {
-        return (new CubeClient(cubeServerUri)).getMeasureHeaderOfCube(cubeName);
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(new URIBuilder(cubeServerUri + "/data").build())
+                    .timeout(Duration.of(20, SECONDS))
+                    .setHeader("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(body))
+                    .build();
+            HttpResponse<String> response = HttpClient.newHttpClient()
+                    .send(request, HttpResponse.BodyHandlers.ofString());
+            return new ObjectMapper().readValue(response.body(), ResultSet[].class);
+        } catch (URISyntaxException | IOException | InterruptedException ex) {
+            Logger.getLogger(CubeQueryCreator.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
     }
 
     public static Optional<CubeList> getCubeList(String cubeServerUri) {
-        return (new CubeClient(cubeServerUri)).getCubesNameAndDate();
+        CubeList cubeList = null;
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(new URI(cubeServerUri + "/cube_list"))
+                    .timeout(Duration.of(10, SECONDS))
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = HttpClient.newHttpClient()
+                    .send(request, HttpResponse.BodyHandlers.ofString());
+            cubeList = new ObjectMapper().readValue(response.body(), CubeList.class);
+        } catch (URISyntaxException | IOException | InterruptedException ex) {
+            Logger.getLogger(CubeQueryCreator.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return Optional.ofNullable(cubeList);
     }
 }

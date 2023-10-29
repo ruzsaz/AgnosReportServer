@@ -1,8 +1,8 @@
 package hu.agnos.report.server.service.query.generator.agnos.additionalcalculation.KaplanMeier;
 
-import hu.agnos.cube.driver.ResultSet;
+
+import hu.agnos.cube.meta.dto.ResultSet;
 import hu.agnos.report.server.service.query.generator.agnos.additionalcalculation.AbstractAdditionalCalculation;
-import hu.agnos.report.server.util.CubeServerClient;
 
 /**
  *

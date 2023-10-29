@@ -2,4 +2,6 @@ package hu.agnos.report.server.resultDTO;
 
 import java.util.List;
 
-public record DimsAndValues(List<DimElement> dims, List<ValueElement> vals) {}
+import hu.agnos.cube.meta.dto.NodeDTO;
+
+public record DimsAndValues(List<NodeDTO> dims, List<ValueElement> vals) {}

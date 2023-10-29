@@ -37,10 +37,7 @@ public class RefreshController {
 	}
 
 	private void refreshCubeList() {
-		CubeList tmpCubeList = CubeServerClient.getCubeList(cubeServerUri).orElse(null);
-		if (cubeList != null && tmpCubeList != null) {
-			cubeList.setCubesNameAndDate(tmpCubeList.getCubesNameAndDate());
-		}
+		cubeList = CubeServerClient.getCubeList(cubeServerUri).orElse(null);
 	}
 
 }

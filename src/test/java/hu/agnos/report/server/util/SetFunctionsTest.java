@@ -1,6 +1,8 @@
 package hu.agnos.report.server.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,4 +24,22 @@ class SetFunctionsTest {
         assertEquals(6, result.size());
         assertEquals(new HashSet<>(expected), new HashSet<>(result));
     }
+
+    @org.junit.jupiter.api.Test
+    void hasSameElementsTest() {
+        System.out.println("Test: hasSameElements");
+        List<String> a = new ArrayList<>(Arrays.asList("zolika", "okos", "nagyon"));
+        List<String> b = new ArrayList<>(Arrays.asList("nagyon", "okos", "zolika"));
+        List<String> c = new ArrayList<>(Arrays.asList("nagyon", "okos", "a", "zolika"));
+        List<String> d = new ArrayList<>(Arrays.asList("nagyon", "okos", "nagyon", "okos", "zolika"));
+        List<String> e = new ArrayList<>(Arrays.asList());
+        List<String> f = new ArrayList<>(Arrays.asList());
+        assertTrue(SetFunctions.haveSameElements(a, a));
+        assertTrue(SetFunctions.haveSameElements(a, b));
+        assertTrue(SetFunctions.haveSameElements(a, d));
+        assertFalse(SetFunctions.haveSameElements(a, c));
+        assertFalse(SetFunctions.haveSameElements(b, c));
+        assertTrue(SetFunctions.haveSameElements(e, f));
+    }
+
 }

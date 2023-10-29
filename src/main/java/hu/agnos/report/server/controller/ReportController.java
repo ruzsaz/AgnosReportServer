@@ -36,11 +36,12 @@ public class ReportController {
 
     @GetMapping(value = "/report", produces = "application/json")
     ResponseEntity<?> getData(@RequestParam(value = "queries", required = false) String encodedQueries) throws Exception {
+        System.out.println();
+        System.out.println("New report query ---------------------------------------------");
         String queries = new String(Base64.getDecoder().decode(encodedQueries));
         System.out.println(queries);
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        ReportQuery query = objectMapper.readValue(queries, ReportQuery.class);
+        ReportQuery query = new ObjectMapper().readValue(queries, ReportQuery.class);
+        System.out.println(query.toString());
         Report report = reportService.getReportByName(query.reportName());
         MDC.put("report", report.getName());
 

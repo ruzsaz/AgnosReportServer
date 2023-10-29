@@ -26,15 +26,15 @@ public class ReportList {
 
     public void init(CubeList cubeList) {
         this.reportList = (new ReportRepository()).findAll();
-        System.out.println(reportList.size());
+        //System.out.println(reportList.size());
         setBrokenStatesFromAvailableCubes(cubeList);
     }
 
     public void setBrokenStatesFromAvailableCubes(CubeList cubeList) {
         for (Report r : reportList) {
             for(Cube c : r.getCubes()) {
-                if ((cubeList == null) || !cubeList.containsCubeWithName(c.getName())) {
-                    System.out.println("BROKKKI");
+                if ((cubeList == null) || !cubeList.cubeMap().containsKey(c.getName())) {
+                    // System.out.println("BROKKKI");
                     r.setBroken(true);
                     break;
                 }

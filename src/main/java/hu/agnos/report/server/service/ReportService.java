@@ -1,17 +1,14 @@
 package hu.agnos.report.server.service;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Objects;
 
 import hu.agnos.cube.meta.dto.CubeList;
-import hu.agnos.cube.meta.dto.CubeNameAndDate;
 import hu.agnos.report.entity.Cube;
 import hu.agnos.report.entity.Report;
 import hu.agnos.report.server.entity.ReportList;
-import hu.agnos.report.server.service.query.generator.agnos.AgnosQueryGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.context.SecurityContext;
@@ -33,9 +30,6 @@ public class ReportService {
     @Autowired
     private ApplicationContext applicationContext;
 
-    @Autowired
-    AgnosQueryGenerator agnosQueryGenerator;
-
     private final SimpleDateFormat dateParser = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 
     public String getReport(String reportUniqueName) {
@@ -49,7 +43,7 @@ public class ReportService {
 
         for (Report report : AccessRoleService.availableForContext(context, this.reportList.getReportList())) {
             String reportString = report.asJson() + ",";
-            System.out.println(reportString);
+            // System.out.println(reportString);
             reportString = reportString.replaceFirst(".", "{\"updated\" : \"" + getLatestCreatedDate(report.getCubes()) + "\",");
             s += reportString;
         }
@@ -79,15 +73,7 @@ public class ReportService {
 
     private Date getCreatedDate(String cubeName) {
         if (cubeList != null) {
-            for (CubeNameAndDate cubeNameAndDate : cubeList.getCubesNameAndDate()) {
-                if (cubeNameAndDate.getName().equals(cubeName)) {
-                    try {
-                        return dateParser.parse(cubeNameAndDate.getCreatedDate());
-                    } catch (ParseException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            }
+            return cubeList.cubeMap().get(cubeName).createdDate();
         }
         return null;
     }

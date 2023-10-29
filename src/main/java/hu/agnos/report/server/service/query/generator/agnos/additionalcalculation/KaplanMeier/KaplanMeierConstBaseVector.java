@@ -18,16 +18,17 @@
  */
 package hu.agnos.report.server.service.query.generator.agnos.additionalcalculation.KaplanMeier;
 
-import hu.agnos.cube.driver.ResultSet;
-import hu.agnos.cube.driver.zolikaokos.ResultElement;
-import hu.agnos.report.server.util.CubeServerClient;
-import hu.agnos.report.server.util.DrillVectorCompressor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
+import hu.agnos.cube.meta.dto.ResultSet;
+import hu.agnos.cube.meta.dto.ResultElement;
+import hu.agnos.report.server.util.CubeServerClient;
+import hu.agnos.report.server.util.DrillVectorCompressor;
 
 /**
  *
@@ -127,9 +128,9 @@ public class KaplanMeierConstBaseVector {
         HashMap<String, KaplenMaierValue[]> sortedRawResults = new HashMap<>();
 
         for (ResultSet rs : normalResultSets) {
-            String name = rs.getName();
-            KaplenMaierValue[] r = tool.getSortedResult(rs);
-            sortedRawResults.put(name, r);
+//            String name = rs.name();
+//            KaplenMaierValue[] r = tool.getSortedResult(rs);
+//            sortedRawResults.put(name, r);
         }
 
 //        nextTime = System.nanoTime();
@@ -198,8 +199,9 @@ public class KaplanMeierConstBaseVector {
 
         List<ResultElement> finalElements = tool.mergedResultElementLists(finalRs, auxElements);
 
-        result = new ResultSet(finalName);
-        result.setResponse(finalElements);
+        // TODO: a két null csak azéet van itt, hogy forduljon,
+        result = null;
+        //result.setResponse(finalElements);
 
         return result;
     }
@@ -212,9 +214,10 @@ public class KaplanMeierConstBaseVector {
      * @return egy új eredményhalmaz (másik objektum), a módosított értékekkel
      */
     private ResultSet getKMProcessedResultSet(KaplenMaierValue[] rs, String finalName) {
-        ResultSet result = new ResultSet(finalName);
+        // TODO: A két null kamu itt
+        ResultSet result = null;
         List<ResultElement> newResponse = getKMProcessedResponse(rs);
-        result.setResponse(newResponse);
+        //result.setResponse(newResponse);
         return result;
     }
 
@@ -231,7 +234,7 @@ public class KaplanMeierConstBaseVector {
             }
 
             ResultElement tempRow = k.row;
-            double[] measureValues = tempRow.getMeasureValues();
+            double[] measureValues = tempRow.measureValues();
             produktum = produktum * measureValues[this.kaplanMeierMeasureIdx];
             measureValues[this.kaplanMeierMeasureIdx] = produktum;
 
@@ -269,19 +272,19 @@ public class KaplanMeierConstBaseVector {
 
             if (lastKaplanMeierDimensionId >= k.kaplenMaierDimensionId) {
                 tempRow = sortedArray[i - 1].row.deepCopy();
-                tempRow.getMeasureValues()[this.kaplanMeierMeasureIdx] = produktum;
+                tempRow.measureValues()[this.kaplanMeierMeasureIdx] = produktum;
                 result.add(tempRow);
 
                 produktum = 1.0;
             }
 
-            produktum = produktum * k.row.getMeasureValues()[this.kaplanMeierMeasureIdx];
+            produktum = produktum * k.row.measureValues()[this.kaplanMeierMeasureIdx];
 
             lastKaplanMeierDimensionId = k.kaplenMaierDimensionId;
 
         }
         tempRow = k.row.deepCopy();
-        tempRow.getMeasureValues()[this.kaplanMeierMeasureIdx] = produktum;
+        tempRow.measureValues()[this.kaplanMeierMeasureIdx] = produktum;
         result.add(tempRow);
 
         return result;

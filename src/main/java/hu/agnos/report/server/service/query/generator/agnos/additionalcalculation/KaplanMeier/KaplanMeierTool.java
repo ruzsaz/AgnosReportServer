@@ -1,15 +1,12 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package hu.agnos.report.server.service.query.generator.agnos.additionalcalculation.KaplanMeier;
 
-import hu.agnos.cube.driver.ResultSet;
-import hu.agnos.cube.driver.zolikaokos.ResultElement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import hu.agnos.cube.meta.dto.ResultElement;
+import hu.agnos.cube.meta.dto.ResultSet;
+
 
 /**
  *
@@ -26,7 +23,7 @@ public class KaplanMeierTool {
     }
 
     public KaplenMaierValue[] getSortedResult(ResultSet rs) {
-        List<ResultElement> elementList = rs.getResponse();
+        List<ResultElement> elementList = rs.response();
         KaplenMaierValue[] result = new KaplenMaierValue[elementList.size()];
         // ebbe a tömbe tároljuk, hogy rendezéskor milyen sorrendben menjen végig a hierarchiák listáján
         // a Kaplan-Meier hierarchia indexe lesz ezen tömb utolsó eleme
@@ -53,7 +50,7 @@ public class KaplanMeierTool {
                 //mindkét tömb rendezve van, így az elemek egyezőségét nem vizsgáljuk
                 ResultElement re = origin[i].row;
                 
-                re.getMeasureValues()[this.kaplanMeierMeasureIdx] = aux.get(i).getMeasureValues()[this.kaplanMeierMeasureIdx];
+                re.measureValues()[this.kaplanMeierMeasureIdx] = aux.get(i).measureValues()[this.kaplanMeierMeasureIdx];
                 result.add(re);
             }
         }
@@ -61,7 +58,7 @@ public class KaplanMeierTool {
     }
 
     private int[] getSortOrder(ResultElement oneRow) {
-        int length = oneRow.getHeader().length;
+        int length = oneRow.header().length;
         int[] sortOrder = new int[length];
 
         int nonKMDimIdx = 0;
