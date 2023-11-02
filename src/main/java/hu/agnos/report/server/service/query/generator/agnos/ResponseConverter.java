@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import hu.agnos.cube.meta.drillDto.DrillScenario;
 import hu.agnos.cube.meta.drillDto.DrillVector;
 import hu.agnos.cube.meta.drillDto.ReportQuery;
 import hu.agnos.cube.meta.dto.NodeDTO;
@@ -34,30 +35,44 @@ public class ResponseConverter {
 
     public AnswerForAllDrills getAnswer(List<ResultSet[]> resultSetsList) {
         List<AnswerForSingleDrill> answerList = new ArrayList<>();
-        for (DrillVector dv : query.drillVectors()) {
-            Map<String, ResultSet> matchingResultSets = new HashMap<>();
-            for (ResultSet[] rss : resultSetsList) {
-                for (ResultSet rs : rss) {
-                    DrillVector originalDrillVector = rs.originalDrill();
-                    // System.out.println(originalDrillVector.dimsToDrill() + " =?= " + dv.dimsToDrill());
-                    // TODO: ehelyett equals?
-                    if (SetFunctions.haveSameElements(originalDrillVector.dimsToDrill(), dv.dimsToDrill())) {
-                        // System.out.println("Megvan!");
-                        matchingResultSets.put(rs.cubeName(), rs);
-                        //break;
-                    }
-                }
-            }
-            System.out.println("drill: " + dv.dimsToDrill());
-            System.out.println("match: " + matchingResultSets);
-            answerList.add(getAnswerForDrill(dv.dimsToDrill(), matchingResultSets));
-            System.out.println("Drill: " + dv + " -hez találtam: " + answerList.size());
+        for (DrillVector drillVector : query.drillVectors()) {
+            Map<String, ResultSet> matchingResultSets = getResulSetsForDrill(drillVector, resultSetsList);
+            answerList.add(getAnswerForDrill(drillVector.dimsToDrill(), matchingResultSets));
         }
         return new AnswerForAllDrills(answerList);
     }
 
+    /**
+     * Selects the matching results from a list of resultSet for a drill request.
+     * (A report query contains some drill-requests, and all cubes answers for
+     * them. The cube's results are the elements in the list of resultSets, each
+     * of them contains an answer for every drill requests)
+     *
+     * @param drill The drill to find the answers for
+     * @param resultSetsList List of resultSets to look for the answers in
+     * @return The matching resultSet, as a cubeName -> ResultSet map
+     */
+    private Map<String, ResultSet> getResulSetsForDrill(DrillVector drill, List<ResultSet[]> resultSetsList) {
+        Map<String, ResultSet> matchingResultSets = new HashMap<>();
+        for (ResultSet[] resultSets : resultSetsList) {
+            for (ResultSet resultSet : resultSets) {
+                DrillVector originalDrill = resultSet.originalDrill();
+                // System.out.println(originalDrillVector.dimsToDrill() + " =?= " + dv.dimsToDrill());
+                if (SetFunctions.haveSameElements(originalDrill.dimsToDrill(), drill.dimsToDrill())) {
+                    matchingResultSets.put(resultSet.cubeName(), resultSet);
+                    break;
+                }
+            }
+        }
+        return matchingResultSets;
+    }
+
     private AnswerForSingleDrill getAnswerForDrill(List<String> drillName, Map<String, ResultSet> matchingResultSets) {
+
+        // Create the dimension value combinations that answers the drill
         List<List<NodeDTO>> fullDimensionProductSet = getFullDimensionProductSet(drillName, matchingResultSets);
+
+        // Fill the values for the dimension value combinations from the results, row by row.
         List<DimsAndValues> dataRows = new ArrayList<>();
         for (List<NodeDTO> resultRowDimensionValues : fullDimensionProductSet) {
             dataRows.add(getMatchingResultValuesFromAllCubes(drillName, resultRowDimensionValues, matchingResultSets));
@@ -80,9 +95,7 @@ public class ResponseConverter {
         // Get the matching dataRowByCubeName value rows for each cube.
         // TODO: extract to a separate method
         Map<String, double[]> dataRowByCubeName = new HashMap<>();
-        //System.out.println("DRILL: " + drillName);
         for (Cube cube : report.getCubes()) {
-            //System.out.println("Ezt keresem: " + cube.getName()+ ", ennyiből: " + matchingResultSets.size());
             ResultSet rs = matchingResultSets.get(cube.getName());
             NodeDTO[] matchPattern = getMatchPattern(drillName, resultRowDimValues, rs.dimensionHeader());
             dataRowByCubeName.put(cube.getName(), getMatchingResultValues(matchPattern, rs));
@@ -95,18 +108,14 @@ public class ResponseConverter {
         // TODO: extracalculations???
         for (Indicator indicator : report.getIndicators()) {
 
+            // Value
             String valueCubeName = indicator.getValueCubeName();
             ResultSet valueResultSet = matchingResultSets.get(valueCubeName);
-            //System.out.println(valueResultSet.measures() + " -ben hol van " + indicator.getValueName());
             int valueIndex = valueResultSet.measures().indexOf(indicator.getValueName());
-
-            //System.out.println(valueResultSet.measures());
-
-            //System.out.println(indicator.getValueName() + " ??? " + valueCubeName + ":" + valueIndex);
-
             double[] dataRow = dataRowByCubeName.get(valueCubeName);
             double sz = (dataRow != null) ? dataRow[valueIndex] : 0;
 
+            // Denominator
             String denominatorCubeName = indicator.getDenominatorCubeName();
             ResultSet denominatorResultSet = matchingResultSets.get(denominatorCubeName);
             int denominatorIndex = denominatorResultSet.measures().indexOf(indicator.getDenominatorName());
@@ -120,8 +129,9 @@ public class ResponseConverter {
     }
 
     private double[] getMatchingResultValues(NodeDTO[] matchPattern, ResultSet resultSet) {
+        DrillScenario[] actualDrill = resultSet.actualDrill();
         for (ResultElement element : resultSet.response()) {
-            if (isMatches(matchPattern, element)) {
+            if (isMatches(actualDrill, matchPattern, element)) {
                 return element.measureValues();
             }
         }
@@ -130,32 +140,37 @@ public class ResponseConverter {
 
     /**
      * Determines if a pattern matches to the element's dimension values.
-     * Nnull matches to anything, notNull matches with String.equals().
+     * Null matches to anything, notNull matches with String.equals().
      *
+     * @param actualDrill The materialized drill strategy in each coordinate
      * @param matchPattern Like ([null], [{"id":"0","knownId":"01","name":"Baranya"}], [null])
      * @param element Single result element from a resultSet
      * @return True of matches, false if not
      */
-    private boolean isMatches(NodeDTO[] matchPattern, ResultElement element) {
+    private boolean isMatches(DrillScenario[] actualDrill, NodeDTO[] matchPattern, ResultElement element) {
         for (int i = 0; i < matchPattern.length; i++) {
-            if (matchPattern[i] != null && !Objects.equals(matchPattern[i], element.header()[i])) {
+            if (actualDrill[i].isShowResultAsDimValue() && matchPattern[i] != null && !Objects.equals(matchPattern[i], element.header()[i])) {
                 return false;
             }
+
+
+
         }
         return true;
     }
 
     /**
      * Determines a dim-matching-pattern to look for values in a resultSet.
-     * @param dimNames Names of the drill dimensions (e.g. 'TERULETI','NEM')
+     *
+     * @param drillDimNames Names of the drill dimensions (e.g. 'TERULETI','NEM')
      * @param dimValues Corresponding dim values (e.g. '{"id":"2","knownId":"03","name":"Békés"}', '{"id":"0","knownId":"1","name":"férfi"}')
-     * @param dimensionHeader
+     * @param dimensionHeader Array of dimension names in the cube
      * @return The dim-matching-pattern (e.g. null, '{"id":"2","knownId":"03","name":"Békés"}', null)
      */
-    private NodeDTO[] getMatchPattern(List<String> dimNames, List<NodeDTO> dimValues, String[] dimensionHeader) {
+    private NodeDTO[] getMatchPattern(List<String> drillDimNames, List<NodeDTO> dimValues, String[] dimensionHeader) {
         NodeDTO[] pattern = new NodeDTO[dimensionHeader.length];
-        for (int i = 0; i < dimNames.size(); i++) {
-            int positionInDrillVector = Arrays.asList(dimensionHeader).indexOf(dimNames.get(i));
+        for (int i = 0; i < drillDimNames.size(); i++) {
+            int positionInDrillVector = Arrays.asList(dimensionHeader).indexOf(drillDimNames.get(i));
             if (positionInDrillVector >= 0) {
                 pattern[positionInDrillVector] = dimValues.get(i);
             }
@@ -173,12 +188,11 @@ public class ResponseConverter {
      * @return The all possible dimension value combinations
      */
     private List<List<NodeDTO>> getFullDimensionProductSet(List<String> drillName, Map<String, ResultSet> matchingResultSets) {
-        List<Set<NodeDTO>> dimValuesinDrill = new ArrayList<>();
+        List<Set<NodeDTO>> dimValuesInDrill = new ArrayList<>();
         for (String drillDimensionName : drillName) {
-            dimValuesinDrill.add(ExtractDimensionValues(drillDimensionName, matchingResultSets));
+            dimValuesInDrill.add(ExtractDimensionValues(drillDimensionName, matchingResultSets));
         }
-        System.out.println(SetFunctions.cartesianProduct(dimValuesinDrill));
-        return SetFunctions.cartesianProduct(dimValuesinDrill);
+        return SetFunctions.cartesianProduct(dimValuesInDrill);
     }
 
     /**
@@ -190,11 +204,10 @@ public class ResponseConverter {
      * @return Set of the occurring dimension values
      */
     private Set<NodeDTO> ExtractDimensionValues(String dimName, Map<String, ResultSet> resultSets) {
-        System.out.println("Ehhez a drillhez keresek: " + dimName);
         Set<NodeDTO> dimensionValues = new HashSet<>();
         for (ResultSet resultSet : resultSets.values()) {
             int positionInDrillVector = Arrays.asList(resultSet.dimensionHeader()).indexOf(dimName);
-            if (positionInDrillVector >= 0) {
+            if (positionInDrillVector >= 0 && resultSet.actualDrill()[positionInDrillVector].isShowResultAsDimValue()) {
                 for (ResultElement resultElement : resultSet.response()) {
                     dimensionValues.add(resultElement.header()[positionInDrillVector]);
                 }

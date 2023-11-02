@@ -36,7 +36,7 @@ public class DataService {
         for (Cube cube: report.getCubes()) {
             // TODO: párhuzamosítani
             CubeMetaDTO cubeMeta = cubeList.cubeMap().get(cube.getName());
-            CubeQuery queryForCube = createCubeQuery(cube.getName(), cubeMeta, query);
+            CubeQuery queryForCube = createCubeQuery(report, cube.getName(), cubeMeta, query);
 
             resultSetsList.add(CubeServerClient.getCubeData(cubeServerUri, queryForCube));
 
