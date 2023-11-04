@@ -8,12 +8,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class GreetingController {
 
-	private final org.slf4j.Logger log = LoggerFactory.getLogger(GreetingController.class);
+	private static final org.slf4j.Logger log = LoggerFactory.getLogger(GreetingController.class);
 
 	private static final String template = "Hello, %s!";
 
 	@GetMapping("/greeting")
-	public String greeting(@RequestParam(value = "name", defaultValue = "World") String name) {
+	public static String greeting(@RequestParam(value = "name", defaultValue = "World") String name) {
 		log.debug("Hearth beat check");
 		return String.format(template, name);
 	}

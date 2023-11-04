@@ -1,22 +1,20 @@
-package hu.agnos.report.server.util;
+package hu.agnos.report.server.service.queryGenerator;
 
-import static hu.agnos.report.server.util.SetFunctions.limitList;
+import hu.agnos.cube.meta.queryDto.*;
+import hu.agnos.cube.meta.resultDto.CubeMetaDTO;
+import hu.agnos.cube.meta.resultDto.DimensionDTO;
+import hu.agnos.report.entity.Report;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import hu.agnos.cube.meta.drillDto.BaseVectorCoordinate;
-import hu.agnos.cube.meta.drillDto.BaseVectorCoordinateForCube;
-import hu.agnos.cube.meta.drillDto.CubeQuery;
-import hu.agnos.cube.meta.drillDto.DrillScenario;
-import hu.agnos.cube.meta.drillDto.DrillVector;
-import hu.agnos.cube.meta.drillDto.DrillVectorForCube;
-import hu.agnos.cube.meta.drillDto.ReportQuery;
-import hu.agnos.cube.meta.dto.CubeMetaDTO;
-import hu.agnos.cube.meta.dto.DimensionDTO;
-import hu.agnos.report.entity.Report;
+import static hu.agnos.report.server.util.SetFunctions.limitList;
 
-public class CubeQueryCreator {
+/**
+ * Transforms a query from the frontend to a personalized query for a Cube. The personalized query contains base- and
+ * drill vectors that the Cube can answer, translated to the Cube's own dimensions.
+ */
+public final class CubeQueryCreator {
 
     /**
      * Creates a personalized query for a given cube.
@@ -45,7 +43,7 @@ public class CubeQueryCreator {
      * @return The personalized base vector, like [ "2016", "06" ]
      */
     private static List<BaseVectorCoordinateForCube> createBaseVectorForCube(List<DimensionDTO> dimensionHeader, List<BaseVectorCoordinate> baseVector) {
-        List<BaseVectorCoordinateForCube> result = new ArrayList<>();
+        List<BaseVectorCoordinateForCube> result = new ArrayList<>(10);
         for (DimensionDTO dimension : dimensionHeader) {
             int maxDepth = dimension.maxDepth();
             for (BaseVectorCoordinate coordinate : baseVector) {
@@ -84,7 +82,7 @@ public class CubeQueryCreator {
      * @return A list of the personalized drill vectors, like [ [false, false, true], [false, false, false] ]
      */
     private static List<DrillVectorForCube> createDrillVectorsForCube(Report report, List<DimensionDTO> dimensionHeader, List<BaseVectorCoordinateForCube> baseVectorForCube, List<DrillVector> drillVectors) {
-        List<DrillVectorForCube> result = new ArrayList<>();
+        List<DrillVectorForCube> result = new ArrayList<>(drillVectors.size());
         for (DrillVector drillVector : drillVectors) {
             result.add(CreateSingleDrillVectorForCube(report, dimensionHeader, baseVectorForCube, drillVector));
         }
@@ -119,13 +117,12 @@ public class CubeQueryCreator {
      * @param depthAllowedInReport The maximal depth allowed by the report in the given dimension (0: root level, etc...)
      * @param dimsToDrill List of the requested drill dimension names, like [ "TIME", "SEX" ]
      * @param dimension The dimension of the cube the drill should be evaluated
-     * @param baseVectorInDimension Base vector value in the dimension, like "2016,06"
+     * @param baseVectorCoordinate Base vector value in the dimension, like "2016,06"
      * @return The allowed DrillScenario, like DRILL, or NOT_REQUESTED, etc...
      */
-    private static DrillScenario determineDrillInDimensionMode(int depthAllowedInReport, List<String> dimsToDrill, DimensionDTO dimension, BaseVectorCoordinateForCube baseVectorInDimension) {
+    private static DrillScenario determineDrillInDimensionMode(int depthAllowedInReport, List<String> dimsToDrill, DimensionDTO dimension, BaseVectorCoordinateForCube baseVectorCoordinate) {
         if (dimsToDrill.contains(dimension.name())) { // If drill is requested in the dimension
-            int baseVectorDepth = depthCodedInPath(baseVectorInDimension.levelValuesString());
-//            System.out.println("MÉLY: " + dimension.name() + ", base:" + baseVectorDepth + "(" + baseVectorInDimension.levelValuesString() + ")" + ", report:" + depthAllowedInReport + ", cube:" + dimension.maxDepth());
+            int baseVectorDepth = depthCodedInPath(baseVectorCoordinate.levelValuesString());
             if (depthAllowedInReport > baseVectorDepth) {
                 if (dimension.maxDepth() > baseVectorDepth) {
                     return DrillScenario.DRILL;
@@ -147,7 +144,7 @@ public class CubeQueryCreator {
         if (path.isEmpty()) {
             return 0;
         }
-        return (int) path.chars().filter(ch -> ch == ',').count() + 1;
+        return (int) path.chars().filter(i -> i == ',').count() + 1;
     }
 
 }

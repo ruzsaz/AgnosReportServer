@@ -1,4 +1,4 @@
-package hu.agnos.report.server.util;
+package hu.agnos.report.server.service;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
 
@@ -14,9 +14,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hu.agnos.cube.meta.drillDto.CubeQuery;
-import hu.agnos.cube.meta.dto.CubeList;
-import hu.agnos.cube.meta.dto.ResultSet;
+import hu.agnos.cube.meta.queryDto.CubeQuery;
+import hu.agnos.cube.meta.resultDto.CubeList;
+import hu.agnos.cube.meta.resultDto.ResultSet;
+import hu.agnos.report.server.service.queryGenerator.CubeQueryCreator;
 import org.apache.http.client.utils.URIBuilder;
 
 /**

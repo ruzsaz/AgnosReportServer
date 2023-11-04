@@ -1,7 +1,7 @@
-package hu.agnos.report.server.service.query.generator.agnos.additionalcalculation.KaplanMeier;
+package hu.agnos.report.server.service.additionalcalculation.KaplanMeier;
 
 
-import hu.agnos.cube.meta.dto.ResultElement;
+import hu.agnos.cube.meta.resultDto.ResultElement;
 
 /**
  *

@@ -1,8 +1,8 @@
 package hu.agnos.report.server.controller;
 
-import hu.agnos.cube.meta.dto.CubeList;
+import hu.agnos.cube.meta.resultDto.CubeList;
 import hu.agnos.report.server.entity.ReportList;
-import hu.agnos.report.server.util.CubeServerClient;
+import hu.agnos.report.server.service.CubeServerClient;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class RefreshController {
 
-	private final org.slf4j.Logger log = LoggerFactory.getLogger(RefreshController.class);
+	private static final org.slf4j.Logger log = LoggerFactory.getLogger(RefreshController.class);
 
 	@Autowired
 	ReportList reportList;

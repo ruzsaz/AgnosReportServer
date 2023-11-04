@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * Collection of simple set functions.
+ */
 public class SetFunctions {
 
     public static <E> List<E> limitList(List<E> list, int limit) {
@@ -17,7 +20,7 @@ public class SetFunctions {
     }
 
     public static <C> List<List<C>> cartesianProduct(List<Set<C>> sets) {
-        List<List<C>> newSets = new ArrayList<>();
+        List<List<C>> newSets = new ArrayList<>(sets.size());
         for(Set<C> set : sets) {
             newSets.add(List.copyOf(set));
         }
@@ -25,8 +28,8 @@ public class SetFunctions {
     }
 
     public static <C> List<List<C>> cartesianProductFromList(List<List<C>> sets) {
-        List<List<C>> result = new ArrayList<>();
-        getCartesianProductHelper(sets, 0, new ArrayList<>(), result);
+        List<List<C>> result = new ArrayList<>(sets.size());
+        getCartesianProductHelper(sets, 0, new ArrayList<>(10), result);
         return result;
     }
 
@@ -44,16 +47,16 @@ public class SetFunctions {
     }
 
     /**
-     * Tests if two arrays have the same elemets (as sets).
+     * Tests if two lists have the same elements (as sets).
      *
-     * @param a First array to check
-     * @param b Second array to check
+     * @param list1 First list to check
+     * @param list2 Second list to check
      * @return True if they have the same elements, false if not
      * @param <E> Type of the elements, must implement equals as required.
      */
-    public static <E> boolean haveSameElements(List<E> a, List<E> b) {
-        Set<E> setA = new HashSet<>(a);
-        Set<E> setB = new HashSet<>(b);
+    public static <E> boolean isHaveSameElements(List<E> list1, List<E> list2) {
+        Set<E> setA = new HashSet<>(list1);
+        Set<E> setB = new HashSet<>(list2);
         return Objects.equals(setA, setB);
     }
 

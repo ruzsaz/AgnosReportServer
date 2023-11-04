@@ -1,4 +1,4 @@
-package hu.agnos.report.server.service.query.generator.agnos.additionalcalculation.KaplanMeier;
+package hu.agnos.report.server.service.additionalcalculation.KaplanMeier;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import hu.agnos.cube.meta.dto.ResultElement;
-import hu.agnos.cube.meta.dto.ResultSet;
-import hu.agnos.report.server.util.CubeServerClient;
+import hu.agnos.cube.meta.resultDto.ResultElement;
+import hu.agnos.cube.meta.resultDto.ResultSet;
+import hu.agnos.report.server.service.CubeServerClient;
 import hu.agnos.report.server.util.DrillVectorCompressor;
 
 /**

@@ -1,11 +1,11 @@
-package hu.agnos.report.server.service.query.generator.agnos.additionalcalculation.KaplanMeier;
+package hu.agnos.report.server.service.additionalcalculation.KaplanMeier;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import hu.agnos.cube.meta.dto.ResultElement;
-import hu.agnos.cube.meta.dto.ResultSet;
+import hu.agnos.cube.meta.resultDto.ResultElement;
+import hu.agnos.cube.meta.resultDto.ResultSet;
 
 
 /**

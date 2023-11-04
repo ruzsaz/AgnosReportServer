@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package hu.agnos.report.server.service.query.generator.agnos.additionalcalculation.KaplanMeier;
+package hu.agnos.report.server.service.additionalcalculation.KaplanMeier;
 
 import java.util.Comparator;
 

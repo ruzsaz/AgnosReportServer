@@ -1,6 +1,6 @@
-package hu.agnos.report.server.service.query.generator.agnos.additionalcalculation;
+package hu.agnos.report.server.service.additionalcalculation;
 
-import hu.agnos.cube.meta.dto.ResultSet;
+import hu.agnos.cube.meta.resultDto.ResultSet;
 import lombok.Getter;
 
 

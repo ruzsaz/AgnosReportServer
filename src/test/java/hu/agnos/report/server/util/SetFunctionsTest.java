@@ -34,12 +34,12 @@ class SetFunctionsTest {
         List<String> d = new ArrayList<>(Arrays.asList("nagyon", "okos", "nagyon", "okos", "zolika"));
         List<String> e = new ArrayList<>(Arrays.asList());
         List<String> f = new ArrayList<>(Arrays.asList());
-        assertTrue(SetFunctions.haveSameElements(a, a));
-        assertTrue(SetFunctions.haveSameElements(a, b));
-        assertTrue(SetFunctions.haveSameElements(a, d));
-        assertFalse(SetFunctions.haveSameElements(a, c));
-        assertFalse(SetFunctions.haveSameElements(b, c));
-        assertTrue(SetFunctions.haveSameElements(e, f));
+        assertTrue(SetFunctions.isHaveSameElements(a, a));
+        assertTrue(SetFunctions.isHaveSameElements(a, b));
+        assertTrue(SetFunctions.isHaveSameElements(a, d));
+        assertFalse(SetFunctions.isHaveSameElements(a, c));
+        assertFalse(SetFunctions.isHaveSameElements(b, c));
+        assertTrue(SetFunctions.isHaveSameElements(e, f));
     }
 
 }

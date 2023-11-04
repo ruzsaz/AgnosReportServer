@@ -1,11 +1,7 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package hu.agnos.report.server.util;
 
 /**
- *
+ * TODO: delete class
  * @author parisek
  */
 public class DrillVectorCompressor {

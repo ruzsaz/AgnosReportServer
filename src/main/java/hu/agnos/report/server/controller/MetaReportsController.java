@@ -1,9 +1,6 @@
 package hu.agnos.report.server.controller;
 
 import hu.agnos.report.server.service.ReportService;
-
-import java.util.Optional;
-
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +10,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Optional;
+
 /**
  *
  * @author parisek
@@ -20,13 +19,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class MetaReportsController {
 
-    private final org.slf4j.Logger log = LoggerFactory.getLogger(MetaReportsController.class);
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(MetaReportsController.class);
 
     @Autowired
     private ReportService reportService;
 
     @GetMapping(value = "reports", produces = "application/json")
-    ResponseEntity<?> getCubeList() {
+    ResponseEntity<?> getReportsList() {
         String jsonCubesHeader = reportService.getReportsHeader(SecurityContextHolder.getContext());
         Optional<String> result = Optional.ofNullable(jsonCubesHeader);
         MDC.put("type", "reportList");

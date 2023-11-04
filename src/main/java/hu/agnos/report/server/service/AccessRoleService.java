@@ -1,8 +1,6 @@
 package hu.agnos.report.server.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+import hu.agnos.report.entity.Report;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,7 +8,9 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
-import hu.agnos.report.entity.Report;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -36,12 +36,12 @@ public class AccessRoleService {
         return context.getAuthentication().getAuthorities().stream().anyMatch(aut -> aut.getAuthority().equalsIgnoreCase(role));
     }
 
-    public static boolean reportAccessible(SecurityContext context, Report report) {
+    public static boolean isReportAccessible(SecurityContext context, Report report) {
         return hasRole(context, report.getRoleToAccess()) && !report.isBroken();
     }
 
     public static List<Report> availableForContext(SecurityContext context, List<Report> original) {
-        return original.stream().filter(r -> reportAccessible(context, r)).collect(Collectors.toList());
+        return original.stream().filter(r -> isReportAccessible(context, r)).collect(Collectors.toList());
     }
 
     public static String getUserName(SecurityContext context) {

@@ -1,17 +1,8 @@
 package hu.agnos.report.server.configuration;
 
-import java.net.URL;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
-
-import jakarta.servlet.http.HttpServletRequest;
-
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
@@ -46,13 +37,20 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.net.URL;
+import java.util.*;
+import java.util.stream.Stream;
+
+/**
+ * Handles the security and cors methods
+ */
 @EnableWebSecurity
 @EnableMethodSecurity
 @Configuration
 public class SecurityConfiguration {
 
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http, ServerProperties serverProperties, @Value("${origins:[]}") String[] origins, @Value("${permit-all:[]}") String[] permitAll, AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver) throws Exception {
+    static SecurityFilterChain filterChain(HttpSecurity http, ServerProperties serverProperties, @Value("${origins:[]}") String[] origins, @Value("${permit-all:[]}") String[] permitAll, AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver) throws Exception {
 
         http.oauth2ResourceServer(oauth2 -> oauth2.authenticationManagerResolver(authenticationManagerResolver));
 
@@ -85,27 +83,26 @@ public class SecurityConfiguration {
         return http.build();
     }
 
-    private UrlBasedCorsConfigurationSource corsConfigurationSource(String[] origins) {
-        final var configuration = new CorsConfiguration();
+    private static UrlBasedCorsConfigurationSource corsConfigurationSource(String[] origins) {
+        CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(origins));
         configuration.setAllowedMethods(List.of("*"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setExposedHeaders(List.of("*"));
 
-
-        final var source = new UrlBasedCorsConfigurationSource();
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 
     @Bean
-    AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver(IssuerProperties issuerProperties, SpringAddonsJwtAuthenticationConverter authenticationConverter) {
-        final Map<String, AuthenticationManager> authenticationProviders = new HashMap<>();
-        authenticationProviders.put(issuerProperties.getUri().toString(), authenticationProvider(issuerProperties.getUri().toString(), authenticationConverter)::authenticate);
-        return new JwtIssuerAuthenticationManagerResolver(authenticationProviders::get);
+    static AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver(IssuerProperties issuerProperties, SpringAddonsJwtAuthenticationConverter authenticationConverter) {
+        Map<String, AuthenticationManager> authProviders = new HashMap<>(1);
+        authProviders.put(issuerProperties.getUri().toString(), authenticationProvider(issuerProperties.getUri().toString(), authenticationConverter)::authenticate);
+        return new JwtIssuerAuthenticationManagerResolver(authProviders::get);
     }
 
-    JwtAuthenticationProvider authenticationProvider(String issuer, SpringAddonsJwtAuthenticationConverter authenticationConverter) {
+    private static JwtAuthenticationProvider authenticationProvider(String issuer, Converter<Jwt, JwtAuthenticationToken> authenticationConverter) {
         JwtDecoder decoder = JwtDecoders.fromIssuerLocation(issuer);
         var provider = new JwtAuthenticationProvider(decoder);
         provider.setJwtAuthenticationConverter(authenticationConverter);
@@ -115,7 +112,8 @@ public class SecurityConfiguration {
     @Getter
     @Configuration
     @ConfigurationProperties(prefix = "auth-issuer")
-    static class IssuerProperties {
+    protected static class IssuerProperties {
+
         private URL uri;
 
         @NestedConfigurationProperty
@@ -137,7 +135,8 @@ public class SecurityConfiguration {
 
         @Getter
         @Setter
-        static class ClaimMappingProperties {
+        protected static class ClaimMappingProperties {
+
             private String jsonPath;
 
             //public void setJsonPath(String jsonPath) {
@@ -145,17 +144,18 @@ public class SecurityConfiguration {
             //}
 
         }
+
     }
 
-    static class JwtGrantedAuthoritiesConverter implements Converter<Jwt, Collection<? extends GrantedAuthority>> {
+    protected static class JwtGrantedAuthoritiesConverter implements Converter<Jwt, Collection<? extends GrantedAuthority>> {
+
         private final IssuerProperties properties;
 
-        public JwtGrantedAuthoritiesConverter(IssuerProperties properties) {
+        protected JwtGrantedAuthoritiesConverter(IssuerProperties properties) {
             this.properties = properties;
         }
 
         @Override
-        @SuppressWarnings({"rawtypes", "unchecked"})
         public Collection<? extends GrantedAuthority> convert(@NotNull Jwt jwt) {
             return Stream.of(properties.claims).flatMap(claimProperties -> {
                 Object claim;
@@ -174,11 +174,11 @@ public class SecurityConfiguration {
                     return Stream.of(claimArr);
                 }
                 if (Collection.class.isAssignableFrom(claim.getClass())) {
-                    final var iterator = ((Collection) claim).iterator();
+                    var iterator = ((Collection) claim).iterator();
                     if (!iterator.hasNext()) {
                         return Stream.empty();
                     }
-                    final var firstItem = iterator.next();
+                    var firstItem = iterator.next();
                     if (firstItem instanceof String) {
                         return (Stream<String>) ((Collection) claim).stream();
                     }
@@ -189,10 +189,12 @@ public class SecurityConfiguration {
                 return Stream.empty();
             }).map(SimpleGrantedAuthority::new).map(GrantedAuthority.class::cast).toList();
         }
+
     }
 
     @Component
-    static class SpringAddonsJwtAuthenticationConverter implements Converter<Jwt, JwtAuthenticationToken> {
+    protected static class SpringAddonsJwtAuthenticationConverter implements Converter<Jwt, JwtAuthenticationToken> {
+
         private final IssuerProperties issuerProperties;
 
         public SpringAddonsJwtAuthenticationConverter(IssuerProperties issuerProperties) {
@@ -205,5 +207,7 @@ public class SecurityConfiguration {
             final String username = JsonPath.read(jwt.getClaims(), issuerProperties.getUsernameJsonPath());
             return new JwtAuthenticationToken(jwt, authorities, username);
         }
+
     }
+
 }

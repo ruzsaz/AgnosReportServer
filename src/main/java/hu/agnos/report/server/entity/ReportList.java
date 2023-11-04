@@ -2,7 +2,7 @@ package hu.agnos.report.server.entity;
 
 import java.util.List;
 
-import hu.agnos.cube.meta.dto.CubeList;
+import hu.agnos.cube.meta.resultDto.CubeList;
 import hu.agnos.report.entity.Cube;
 import hu.agnos.report.entity.Report;
 import hu.agnos.report.repository.ReportRepository;
@@ -26,7 +26,6 @@ public class ReportList {
 
     public void init(CubeList cubeList) {
         this.reportList = (new ReportRepository()).findAll();
-        //System.out.println(reportList.size());
         setBrokenStatesFromAvailableCubes(cubeList);
     }
 
