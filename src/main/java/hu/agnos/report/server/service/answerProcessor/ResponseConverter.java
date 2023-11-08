@@ -1,8 +1,22 @@
 package hu.agnos.report.server.service.answerProcessor;
 
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+
 import hu.agnos.cube.meta.queryDto.DrillScenario;
 import hu.agnos.cube.meta.queryDto.DrillVector;
 import hu.agnos.cube.meta.queryDto.ReportQuery;
+import hu.agnos.cube.meta.resultDto.CubeList;
+import hu.agnos.cube.meta.resultDto.CubeMetaDTO;
 import hu.agnos.cube.meta.resultDto.NodeDTO;
 import hu.agnos.cube.meta.resultDto.ResultElement;
 import hu.agnos.cube.meta.resultDto.ResultSet;
@@ -10,23 +24,47 @@ import hu.agnos.report.entity.Cube;
 import hu.agnos.report.entity.Dimension;
 import hu.agnos.report.entity.Indicator;
 import hu.agnos.report.entity.Report;
-import hu.agnos.report.server.resultDTO.*;
+import hu.agnos.report.server.resultDTO.AnswerForAllDrills;
+import hu.agnos.report.server.resultDTO.AnswerForSingleDrill;
+import hu.agnos.report.server.resultDTO.DataRowsInResponse;
+import hu.agnos.report.server.resultDTO.DimsAndValues;
+import hu.agnos.report.server.resultDTO.ValueElement;
 import hu.agnos.report.server.util.SetFunctions;
-import lombok.AllArgsConstructor;
-
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 
 /**
  * Tool to construct a response from the frontend from the individual responses from the different Cubes.
  */
-@AllArgsConstructor
 public class ResponseConverter {
 
-    private Report report;
-    private ReportQuery query;
-    private Executor executor;
+    private CubeList cubeList;
+    private final Report report;
+    private final ReportQuery query;
+    private final Executor executor;
+    String extraCalcDimensionName; // If extra calculation is requested, the name of the dimension
+
+
+    public ResponseConverter(CubeList cubeList, Report report, ReportQuery query, Executor executor) {
+        this.cubeList = cubeList;
+        this.report = report;
+        this.query = query;
+        this.executor = executor;
+        this.extraCalcDimensionName = getExtraCalcDimensionName();
+    }
+
+    // TODO: ha úgyse kell a mutató, akkor nem kikeresni
+
+    /**
+     * Determines the name of the dimension mentioned in an extraCalculated (only Kaplan-Meier implemented)
+     * indicator in the report.
+     *
+     * @return Name of the dimension, or null
+     */
+    private String getExtraCalcDimensionName() {
+        if (!report.getExtraCalculatedIndicators().isEmpty()) {
+            return report.getExtraCalculatedIndicators().get(0).getExtraCalculation().getArgs();
+        }
+        return null;
+    }
 
     /**
      * Selects the ResultSet matching to a drill from an array of ResultSets, came from an answer from a single Cube.
@@ -35,16 +73,14 @@ public class ResponseConverter {
      * @param resultSets Array of ResultSets to look for the answers in
      * @return The matching resultSet, as a cubeName -> ResultSet map, with exactly 1 element
      */
-    private static Map<String, ResultSet> findTheMatchingResultSet(DrillVector drill, ResultSet[] resultSets) {
-        Map<String, ResultSet> result = new HashMap<>(1);
+    private static Map.Entry<String, ResultSet> findTheMatchingResultSet(DrillVector drill, ResultSet[] resultSets) {
         for (ResultSet resultSet : resultSets) {
             DrillVector originalDrill = resultSet.originalDrill();
             if (SetFunctions.isHaveSameElements(originalDrill.dimsToDrill(), drill.dimsToDrill())) {
-                result.put(resultSet.cubeName(), resultSet);
-                break;
+                return new AbstractMap.SimpleEntry<>(resultSet.cubeName(), resultSet);
             }
         }
-        return result;
+        return null;
     }
 
     private static double[] getMatchingResultValues(NodeDTO[] matchPattern, ResultSet resultSet) {
@@ -154,9 +190,60 @@ public class ResponseConverter {
     private Map<String, ResultSet> getResulSetsForDrill(DrillVector drill, List<ResultSet[]> resultSetsList) {
         Map<String, ResultSet> matchingResultSets = new HashMap<>(report.getCubes().size());
         for (ResultSet[] resultSets : resultSetsList) {
-            matchingResultSets.putAll(findTheMatchingResultSet(drill, resultSets));
+            Map.Entry<String, ResultSet> matchingResultSet = findTheMatchingResultSet(drill, resultSets);
+            if (matchingResultSet != null) {
+                if (isPreProcessingRequired(matchingResultSet)) {
+                    List<Integer> extraCalculatedIndices = getExtraCalculatedIndicatorIndices(matchingResultSet.getKey());
+                    KaplanMeierPreProcessor.process(matchingResultSet.getValue(), extraCalculatedIndices);
+                }
+                matchingResultSets.put(matchingResultSet.getKey(), matchingResultSet.getValue());
+            }
         }
         return matchingResultSets;
+    }
+
+    /**
+     * Decides if any preprocessing (Kaplan-Meier calculation) of the resultSet is required.
+     *
+     * @param resultSetMap The resultSet to consider
+     * @return True if required, false if not
+     */
+    private boolean isPreProcessingRequired(Map.Entry<String, ResultSet> resultSetMap) {
+        return Arrays.stream(resultSetMap.getValue().actualDrill()).anyMatch(DrillScenario::isShowExtraCalculationInstead);
+    }
+
+    /**
+     * Determines the indexes of extra calculated indicators within a Cube.
+     * (The extra calculation requirements is included in the report only.)
+     * If the denominator is hidden, it is omitted.
+     *
+     * @param cubeName The name of the cube
+     * @return List of indices in the cube to extra-calculate
+     */
+    private List<Integer> getExtraCalculatedIndicatorIndices(String cubeName) {
+        CubeMetaDTO cubeMeta = cubeList.cubeMap().get(cubeName);
+        List<String> indicatorsInCube = Arrays.asList(cubeMeta.measureHeader());
+        List<Integer> result = new ArrayList<>(1);
+        List<Indicator> extraCalculatedIndicators = report.getExtraCalculatedIndicators();
+        for (Indicator indicator : extraCalculatedIndicators) {
+            String valueCubeName = indicator.getValueCubeName();
+            String valueName = indicator.getValueName();
+            String denominatorCubeName = indicator.getDenominatorCubeName();
+            String denominatorName = indicator.getDenominatorName();
+            if (valueCubeName.equals(cubeName)) {
+                int index = indicatorsInCube.indexOf(valueName);
+                if (index >= 0) {
+                    result.add(index);
+                }
+            }
+            if (denominatorCubeName.equals(cubeName)) {
+                int index = indicatorsInCube.indexOf(denominatorName);
+                if (index >= 0 && !indicator.isDenominatorIsHidden()) {
+                    result.add(index);
+                }
+            }
+        }
+        return result;
     }
 
     private AnswerForSingleDrill getAnswerForDrillAsync(List<String> drillName, Map<String, ResultSet> matchingResultSets) {
@@ -165,9 +252,9 @@ public class ResponseConverter {
         List<List<NodeDTO>> dimensionProductSet = getFullDimensionProductSet(drillName, matchingResultSets);
 
         // Async fill the values for the dimension value combinations from the results, row by row.
-        var futureMovies = dimensionProductSet.stream().map(coordinates -> CompletableFuture.supplyAsync(() ->
+        var futureValuesList = dimensionProductSet.stream().map(coordinates -> CompletableFuture.supplyAsync(() ->
                 getMatchingResultValuesFromAllCubes(drillName, coordinates, matchingResultSets), executor)).toList();
-        List<DimsAndValues> dataRows = futureMovies.stream().map(CompletableFuture::join).toList();
+        List<DimsAndValues> dataRows = futureValuesList.stream().map(CompletableFuture::join).toList();
 
         return new AnswerForSingleDrill(formatDrillNameForFrontend(drillName), new DataRowsInResponse(dataRows));
     }
@@ -196,6 +283,8 @@ public class ResponseConverter {
         // Crate the report measures
         // TODO: extract...
         // TODO: extracalculations???
+        // TODO: ahelyett, hogy egyesével keressük az értékeket, jobb lehet a cube-okon végigmenni,
+        // és beírni, aminek van helye
         for (Indicator indicator : report.getIndicators()) {
 
             // Value
