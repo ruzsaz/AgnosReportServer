@@ -1,7 +1,5 @@
 package hu.agnos.report.server.configuration;
 
-import hu.agnos.cube.meta.resultDto.CubeList;
-import hu.agnos.report.server.service.CubeServerClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
@@ -10,9 +8,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.stereotype.Component;
 
-/**
- * @author parisek
- */
+import hu.agnos.cube.meta.resultDto.CubeList;
+import hu.agnos.report.server.service.CubeServerClient;
+
 @Component
 @Configuration
 public class ReportServerConfiguration {

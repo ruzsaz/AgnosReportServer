@@ -1,8 +1,16 @@
 package hu.agnos.report.server.configuration;
 
+import java.net.URL;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+import jakarta.servlet.http.HttpServletRequest;
+
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
@@ -36,10 +44,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.net.URL;
-import java.util.*;
-import java.util.stream.Stream;
 
 /**
  * Handles the security and cors methods
@@ -98,14 +102,14 @@ public class SecurityConfiguration {
     @Bean
     static AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver(IssuerProperties issuerProperties, SpringAddonsJwtAuthenticationConverter authenticationConverter) {
         Map<String, AuthenticationManager> authProviders = new HashMap<>(1);
-        authProviders.put(issuerProperties.getUri().toString(), authenticationProvider(issuerProperties.getUri().toString(), authenticationConverter)::authenticate);
+        authProviders.put(issuerProperties.getUri().toString(), SecurityConfiguration.authenticationProvider(issuerProperties.getUri().toString(), authenticationConverter)::authenticate);
         return new JwtIssuerAuthenticationManagerResolver(authProviders::get);
     }
 
-    private static JwtAuthenticationProvider authenticationProvider(String issuer, Converter<Jwt, JwtAuthenticationToken> authenticationConverter) {
+    private static JwtAuthenticationProvider authenticationProvider(String issuer, Converter<Jwt, JwtAuthenticationToken> authConverter) {
         JwtDecoder decoder = JwtDecoders.fromIssuerLocation(issuer);
         var provider = new JwtAuthenticationProvider(decoder);
-        provider.setJwtAuthenticationConverter(authenticationConverter);
+        provider.setJwtAuthenticationConverter(authConverter);
         return provider;
     }
 
@@ -136,13 +140,7 @@ public class SecurityConfiguration {
         @Getter
         @Setter
         protected static class ClaimMappingProperties {
-
             private String jsonPath;
-
-            //public void setJsonPath(String jsonPath) {
-            //    this.jsonPath = jsonPath;
-            //}
-
         }
 
     }

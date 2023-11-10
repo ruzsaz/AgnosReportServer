@@ -25,29 +25,14 @@ import hu.agnos.report.entity.Report;
  */
 public class CubeQueryCreator {
 
-    Report report; // The Report under process
-    String cubeName; // Name of the target cube
-    CubeMetaDTO cubeMeta; // Meta of the target cube
-    String extraCalcDimensionName; // If extra calculation is requested, the name of the dimension
+    private final Report report; // The Report under process
+    private final String cubeName; // Name of the target cube
+    private final CubeMetaDTO cubeMeta; // Meta of the target cube
 
     public CubeQueryCreator(Report report, String cubeName, CubeMetaDTO cubeMeta) {
         this.report = report;
         this.cubeName = cubeName;
         this.cubeMeta = cubeMeta;
-        this.extraCalcDimensionName = getExtraCalcDimensionName();
-    }
-
-    /**
-     * Determines the name of the dimension mentioned in an extraCalculated (only Kaplan-Meier implemented)
-     * indicator in the report.
-     *
-     * @return Name of the dimension, or null
-     */
-    private String getExtraCalcDimensionName() {
-        if (!report.getExtraCalculatedIndicators().isEmpty()) {
-            return report.getExtraCalculatedIndicators().get(0).getExtraCalculation().getArgs();
-        }
-        return null;
     }
 
     /**
@@ -152,27 +137,27 @@ public class CubeQueryCreator {
      * @param baseVectorCoordinate Base vector value in the dimension, like "2016,06"
      * @return The allowed DrillScenario, like DRILL, or NOT_REQUESTED, etc...
      */
-    private DrillScenario determineDrillInDimensionMode(int depthAllowedInReport, List<String> dimsToDrill, DimensionDTO dimension, BaseVectorCoordinateForCube baseVectorCoordinate) {
+    private static DrillScenario determineDrillInDimensionMode(int depthAllowedInReport, List<String> dimsToDrill, DimensionDTO dimension, BaseVectorCoordinateForCube baseVectorCoordinate) {
         if (dimsToDrill.contains(dimension.name())) { // If drill is requested in the dimension
-            int baseVectorDepth = depthCodedInPath(baseVectorCoordinate.levelValuesString());
+            int baseVectorDepth = CubeQueryCreator.depthCodedInPath(baseVectorCoordinate.levelValuesString());
             if (depthAllowedInReport > baseVectorDepth) {
                 if (dimension.maxDepth() > baseVectorDepth) {
-                    return (dimension.name().equals(extraCalcDimensionName)) ? DrillScenario.DRILL_AND_EXTRA_CALCULATIONS : DrillScenario.DRILL;
+                    return DrillScenario.DRILL;
                 }
                 return DrillScenario.REQUESTED_BUT_LEVEL_MISSING;
             }
             return DrillScenario.REQUESTED_BUT_ALLOWED_LEVEL_REACHED;
         }
-        if (dimension.name().equals(extraCalcDimensionName)) { // If it is a Kaplan-Meier dimension
-            int baseVectorDepth = depthCodedInPath(baseVectorCoordinate.levelValuesString());
-            if (depthAllowedInReport > baseVectorDepth) {
-                if (dimension.maxDepth() > baseVectorDepth) {
-                    return DrillScenario.ONLY_FOR_EXTRA_CALCULATIONS;
-                }
-                return DrillScenario.FOR_EXTRA_CALCULATIONS_BUT_LEVEL_MISSING;
-            }
-            return DrillScenario.FOR_EXTRA_CALCULATIONS_BUT_ALLOWED_LEVEL_REACHED;
-        }
+//        if (dimension.name().equals(extraCalcDimensionName)) { // If it is a Kaplan-Meier dimension
+//            int baseVectorDepth = depthCodedInPath(baseVectorCoordinate.levelValuesString());
+//            if (depthAllowedInReport > baseVectorDepth) {
+//                if (dimension.maxDepth() > baseVectorDepth) {
+//                    return DrillScenario.ONLY_FOR_EXTRA_CALCULATIONS;
+//                }
+//                return DrillScenario.FOR_EXTRA_CALCULATIONS_BUT_LEVEL_MISSING;
+//            }
+//            return DrillScenario.FOR_EXTRA_CALCULATIONS_BUT_ALLOWED_LEVEL_REACHED;
+//        }
         return DrillScenario.NOT_REQUESTED;
     }
 

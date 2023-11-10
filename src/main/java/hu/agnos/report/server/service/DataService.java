@@ -7,6 +7,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
 import hu.agnos.cube.meta.queryDto.CubeQuery;
 import hu.agnos.cube.meta.queryDto.ReportQuery;
 import hu.agnos.cube.meta.resultDto.CubeList;
@@ -16,9 +20,6 @@ import hu.agnos.report.entity.Cube;
 import hu.agnos.report.entity.Report;
 import hu.agnos.report.server.service.answerProcessor.ResponseConverter;
 import hu.agnos.report.server.service.queryGenerator.CubeQueryCreator;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
 @Service
 public class DataService {
@@ -44,7 +45,7 @@ public class DataService {
         long end = System.currentTimeMillis();
         System.out.printf("Data query from the cubes took %s ms%n", end - start);
 
-        ResponseConverter responseConverter = new ResponseConverter(cubeList, report, query, Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()));
+        ResponseConverter responseConverter = new ResponseConverter(report, query, Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()));
         String answer = responseConverter.getAnswer(resultSetsList).asJson();
         long end2 = System.currentTimeMillis();
         System.out.printf("Resolving the data took %s ms%n", end2 - end);

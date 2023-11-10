@@ -1,6 +1,7 @@
 package hu.agnos.report.server.controller;
 
-import hu.agnos.report.server.service.ReportService;
+import java.util.Optional;
+
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,10 +11,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Optional;
+import hu.agnos.report.server.service.ReportService;
 
 /**
- *
  * @author parisek
  */
 @RestController

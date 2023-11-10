@@ -1,12 +1,17 @@
 package hu.agnos.report.server.configuration;
 
-import hu.agnos.report.server.service.AccessRoleService;
-import jakarta.servlet.*;
+import java.io.IOException;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+
 import org.slf4j.MDC;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
+import hu.agnos.report.server.service.AccessRoleService;
 
 /**
  * Automatically determine the username in each request, and put into the global MDC environment for logging.
