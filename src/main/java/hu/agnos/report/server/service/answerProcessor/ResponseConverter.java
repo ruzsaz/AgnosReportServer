@@ -51,8 +51,12 @@ public class ResponseConverter {
         this.executor = executor;
     }
 
-    // TODO: ha úgyse kell a mutató, akkor nem kikeresni
-
+    /**
+     * Converts the responses from the cubes to a response for the report query.
+     *
+     * @param resultSetsList List of resultSet-arrays, sent by the cubes
+     * @return Response to send to the frontend
+     */
     public AnswerForAllDrills getAnswer(List<ResultSet[]> resultSetsList) {
         List<AnswerForSingleDrill> answerList = new ArrayList<>(query.drillVectors().size());
         for (DrillVector drillVector : query.drillVectors()) {
@@ -112,43 +116,14 @@ public class ResponseConverter {
         return null;
     }
 
-
     private DimsAndValues getMatchingResultValuesFromAllCubes(List<String> drillName, List<NodeDTO> resultRowDimValues, Map<String, ResultSet> matchingResultSets) {
-
-        // Get the matching dataRowByCubeName value rows for each cube.
-        // TODO: extract to a separate method
-        Map<String, double[]> dataRowByCubeName = new HashMap<>(report.getCubes().size());
-        for (Cube cube : report.getCubes()) {
-            ResultSet rs = matchingResultSets.get(cube.getName());
-            NodeDTO[] matchPattern = ResponseConverter.getMatchPattern(drillName, resultRowDimValues, rs.dimensionHeader());
-            dataRowByCubeName.put(cube.getName(), ResponseConverter.getMatchingResultValues(matchPattern, rs));
-        }
-
+        Map<String, double[]> dataRowByCubeName = getDataRowMap(drillName, resultRowDimValues, matchingResultSets);
         List<ValueElement> valueElementList = new ArrayList<>(report.getIndicators().size());
-
-        // Crate the report measures
-        // TODO: extract...
-        // TODO: ahelyett, hogy egyesével keressük az értékeket, jobb lehet a cube-okon végigmenni,
-        // és beírni, aminek van helye
         for (Indicator indicator : report.getIndicators()) {
-
-            // Value
-            String valueCubeName = indicator.getValueCubeName();
-            ResultSet valueResultSet = matchingResultSets.get(valueCubeName);
-            int valueIndex = valueResultSet.measures().indexOf(indicator.getValueName());
-            double[] dataRow = dataRowByCubeName.get(valueCubeName);
-            double value = (dataRow != null) ? dataRow[valueIndex] : 0.0;
-
-            // Denominator
-            String denominatorCubeName = indicator.getDenominatorCubeName();
-            ResultSet denominatorResultSet = matchingResultSets.get(denominatorCubeName);
-            int denominatorIndex = denominatorResultSet.measures().indexOf(indicator.getDenominatorName());
-            double[] denominatorDataRow = dataRowByCubeName.get(denominatorCubeName);
-            double denominator = (denominatorDataRow != null) ? denominatorDataRow[denominatorIndex] : 0.0;
-
+            double value = ResponseConverter.getMeasureValue(dataRowByCubeName, matchingResultSets, indicator.getValueCubeName(), indicator.getValueName());
+            double denominator = ResponseConverter.getMeasureValue(dataRowByCubeName, matchingResultSets, indicator.getDenominatorCubeName(), indicator.getDenominatorName());
             valueElementList.add(new ValueElement(value, denominator));
         }
-
         return new DimsAndValues(resultRowDimValues, valueElementList);
     }
 
@@ -160,6 +135,43 @@ public class ResponseConverter {
         return String.join(":", resultArray);
     }
 
+    /**
+     * Gets the matching data row from each Cube for a given drill. The result will be presented as a cubeName ->
+     * dataRow map.
+     *
+     * @param drillNames Names of the drill dimensions (e.g. 'TERRITORIAL','SEX')
+     * @param resultRowDimValues The coordinate values in the base&drill level
+     * @param matchingResultSets The cubeName -> resultSet map
+     * @return The cubeName -> dataRow map
+     */
+    private Map<String, double[]> getDataRowMap(List<String> drillNames, List<NodeDTO> resultRowDimValues, Map<String, ResultSet> matchingResultSets) {
+        Map<String, double[]> dataRowByCubeName = new HashMap<>(report.getCubes().size());
+        for (Cube cube : report.getCubes()) {
+            ResultSet rs = matchingResultSets.get(cube.getName());
+            NodeDTO[] matchPattern = ResponseConverter.getMatchPattern(drillNames, resultRowDimValues, rs.dimensionHeader());
+            dataRowByCubeName.put(cube.getName(), ResponseConverter.getMatchingResultValues(matchPattern, rs));
+        }
+        return dataRowByCubeName;
+    }
+
+    /**
+     * Gets a single measure's value from a result from a cube.
+     *
+     * @param dataRowByCubeName A CubeName -> resultDataRow map, according the selected base&drill
+     * @param matchingResultSets A CubeName -> resultSet map, according the selected base&drill
+     * @param cubeName The cube's name to get the measure from
+     * @param measureName Measure's name inside the cube
+     * @return The measure's value at the given base@drill from the cube
+     */
+    private static double getMeasureValue(Map<String, double[]> dataRowByCubeName, Map<String, ResultSet> matchingResultSets, String cubeName, String measureName) {
+        if (cubeName.isEmpty()) {
+            return 1.0;
+        }
+        ResultSet valueResultSet = matchingResultSets.get(cubeName);
+        int measureIndex = valueResultSet.measures().indexOf(measureName);
+        double[] dataRow = dataRowByCubeName.get(cubeName);
+        return (dataRow != null) ? dataRow[measureIndex] : 0.0;
+    }
 
     /**
      * Determines a dim-matching-pattern to look for values in a resultSet.
@@ -191,7 +203,6 @@ public class ResponseConverter {
         }
         return null;
     }
-
 
     /**
      * Determines if a pattern matches to the element's dimension values. Null matches to anything, notNull matches with
