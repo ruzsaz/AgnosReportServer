@@ -94,10 +94,12 @@ public final class CoordinateExtractor {
         ResultSet resultSet = resultSetsEntry.getValue();
         String resultSetCubeName = resultSet.cubeName();
         if (!transparentCubeNames.contains(resultSetCubeName)) {
+            //System.out.println(String.join(", ",resultSet.dimensionHeader()));
             int indexInDrillVector = Arrays.asList(resultSet.dimensionHeader()).indexOf(dimName);
             if (indexInDrillVector >= 0 && resultSet.actualDrill()[indexInDrillVector].isShowResultAsDimValue()) {
                 Set<NodeDTO> dimensionValues = new HashSet<>(10);
                 for (ResultElement resultElement : resultSet.response()) {
+                    //System.out.println(String.join(", ", Arrays.stream(resultElement.header()).map(d -> d.name()).toList()));
                     dimensionValues.add(resultElement.header()[indexInDrillVector]);
                 }
                 return dimensionValues;
