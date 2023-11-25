@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import hu.agnos.cube.meta.resultDto.CubeList;
+import hu.agnos.report.server.entity.Cache;
 import hu.agnos.report.server.entity.ReportList;
 import hu.agnos.report.server.service.CubeServerClient;
 
@@ -21,6 +22,9 @@ public class RefreshController {
     @Autowired
     CubeList cubeList;
 
+    @Autowired
+    Cache cache;
+
     @Value("${agnos.cube.server.uri}")
     private String cubeServerUri;
 
@@ -29,6 +33,7 @@ public class RefreshController {
         // TODO: check for credentials?
         refreshCubeList();
         refreshReports();
+        cache.init();
         log.info("Reports refreshed");
         return "Refreshed";
     }

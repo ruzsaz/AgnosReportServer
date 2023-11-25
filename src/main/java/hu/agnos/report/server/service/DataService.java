@@ -2,6 +2,7 @@ package hu.agnos.report.server.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -18,6 +19,7 @@ import hu.agnos.cube.meta.resultDto.CubeMetaDTO;
 import hu.agnos.cube.meta.resultDto.ResultSet;
 import hu.agnos.report.entity.Cube;
 import hu.agnos.report.entity.Report;
+import hu.agnos.report.server.entity.Cache;
 import hu.agnos.report.server.service.answerProcessor.ResponseConverter;
 import hu.agnos.report.server.service.queryGenerator.CubeQueryCreator;
 
@@ -30,6 +32,9 @@ public class DataService {
     @Autowired
     private CubeList cubeList;
 
+    @Autowired
+    private Cache cache;
+
     private ExecutorService executor;
 
     public String getData(Report report, ReportQuery query) {
@@ -39,7 +44,7 @@ public class DataService {
         executor = Executors.newFixedThreadPool(numberOfCubes);
         List<CompletableFuture<ResultSet[]>> resultFutures = new ArrayList<>(numberOfCubes);
         for (Cube cube : report.getCubes()) {
-            resultFutures.add(getDataFromCubeAsync(report, cube, query));
+            resultFutures.add(getDataFromCacheAsync(report, cube, query));
         }
         List<ResultSet[]> resultSetsList = resultFutures.stream().map(CompletableFuture::join).collect(Collectors.toList());
         long end = System.currentTimeMillis();
@@ -52,12 +57,35 @@ public class DataService {
         return answer;
     }
 
+    private CompletableFuture<ResultSet[]> getDataFromCacheAsync(Report report, Cube cube, ReportQuery query) {
+        CompletableFuture<ResultSet[]> completableFuture = new CompletableFuture<>();
+        CubeMetaDTO cubeMeta = cubeList.cubeMap().get(cube.getName());
+        CubeQueryCreator cubeQueryCreator = new CubeQueryCreator(report, cube.getName(), cubeMeta);
+        CubeQuery queryForCube = cubeQueryCreator.createCubeQuery(query);
+        System.out.println("Cache size: " + cache.getSlowCache().size() + ", " + cache.getFastCache().size());
+        executor.submit(() -> {
+            Optional<ResultSet[]> cachedResult = cache.get(queryForCube);
+            if (cachedResult.isPresent()) {
+                System.out.println("CACHE hit");
+                completableFuture.complete(cachedResult.get());
+            } else {
+                System.out.println("Cache miss");
+                long startTime = System.currentTimeMillis();
+                ResultSet[] result = CubeServerClient.getCubeData(cubeServerUri, queryForCube);
+                long endTime = System.currentTimeMillis();
+                cache.insert(queryForCube, result, endTime - startTime);
+                completableFuture.complete(result);
+            }
+        });
+        return completableFuture;
+    }
+
     private CompletableFuture<ResultSet[]> getDataFromCubeAsync(Report report, Cube cube, ReportQuery query) {
         CompletableFuture<ResultSet[]> completableFuture = new CompletableFuture<>();
+        CubeMetaDTO cubeMeta = cubeList.cubeMap().get(cube.getName());
+        CubeQueryCreator cubeQueryCreator = new CubeQueryCreator(report, cube.getName(), cubeMeta);
+        CubeQuery queryForCube = cubeQueryCreator.createCubeQuery(query);
         executor.submit(() -> {
-            CubeMetaDTO cubeMeta = cubeList.cubeMap().get(cube.getName());
-            CubeQueryCreator cubeQueryCreator = new CubeQueryCreator(report, cube.getName(), cubeMeta);
-            CubeQuery queryForCube = cubeQueryCreator.createCubeQuery(query);
             completableFuture.complete(CubeServerClient.getCubeData(cubeServerUri, queryForCube));
         });
         return completableFuture;
