@@ -42,11 +42,11 @@ public class DataService {
 
         long start = System.currentTimeMillis();
         executor = Executors.newFixedThreadPool(numberOfCubes);
-        List<CompletableFuture<ResultSet[]>> resultFutures = new ArrayList<>(numberOfCubes);
+        List<CompletableFuture<ResultSet>> resultFutures = new ArrayList<>(numberOfCubes);
         for (Cube cube : report.getCubes()) {
-            resultFutures.add(getDataFromCacheAsync(report, cube, query));
+            resultFutures.addAll(getDataFromCacheAsync(report, cube, query));
         }
-        List<ResultSet[]> resultSetsList = resultFutures.stream().map(CompletableFuture::join).collect(Collectors.toList());
+        List<ResultSet> resultSetsList = resultFutures.stream().map(CompletableFuture::join).collect(Collectors.toList());
         long end = System.currentTimeMillis();
         System.out.printf("Data query from the cubes took %s ms%n", end - start);
 
@@ -57,38 +57,30 @@ public class DataService {
         return answer;
     }
 
-    private CompletableFuture<ResultSet[]> getDataFromCacheAsync(Report report, Cube cube, ReportQuery query) {
-        CompletableFuture<ResultSet[]> completableFuture = new CompletableFuture<>();
+    private List<CompletableFuture<ResultSet>> getDataFromCacheAsync(Report report, Cube cube, ReportQuery query) {
+        List<CompletableFuture<ResultSet>> completableFutures = new ArrayList<>();
         CubeMetaDTO cubeMeta = cubeList.cubeMap().get(cube.getName());
         CubeQueryCreator cubeQueryCreator = new CubeQueryCreator(report, cube.getName(), cubeMeta);
-        CubeQuery queryForCube = cubeQueryCreator.createCubeQuery(query);
-        System.out.println("Cache size: " + cache.getSlowCache().size() + ", " + cache.getFastCache().size());
-        executor.submit(() -> {
-            Optional<ResultSet[]> cachedResult = cache.get(queryForCube);
-            if (cachedResult.isPresent()) {
-                System.out.println("CACHE hit");
-                completableFuture.complete(cachedResult.get());
-            } else {
-                System.out.println("Cache miss");
-                long startTime = System.currentTimeMillis();
-                ResultSet[] result = CubeServerClient.getCubeData(cubeServerUri, queryForCube);
-                long endTime = System.currentTimeMillis();
-                cache.insert(queryForCube, result, endTime - startTime);
-                completableFuture.complete(result);
-            }
-        });
-        return completableFuture;
-    }
-
-    private CompletableFuture<ResultSet[]> getDataFromCubeAsync(Report report, Cube cube, ReportQuery query) {
-        CompletableFuture<ResultSet[]> completableFuture = new CompletableFuture<>();
-        CubeMetaDTO cubeMeta = cubeList.cubeMap().get(cube.getName());
-        CubeQueryCreator cubeQueryCreator = new CubeQueryCreator(report, cube.getName(), cubeMeta);
-        CubeQuery queryForCube = cubeQueryCreator.createCubeQuery(query);
-        executor.submit(() -> {
-            completableFuture.complete(CubeServerClient.getCubeData(cubeServerUri, queryForCube));
-        });
-        return completableFuture;
+        List<CubeQuery> queriesForCube = cubeQueryCreator.createCubeQuery(query);
+        for (CubeQuery queryForCube : queriesForCube) {
+            CompletableFuture<ResultSet> completableFuture = new CompletableFuture<>();
+            executor.submit(() -> {
+                Optional<ResultSet> cachedResult = cache.get(queryForCube);
+                if (cachedResult.isPresent()) {
+                    System.out.println("CACHE hit");
+                    completableFuture.complete(cachedResult.get());
+                } else {
+                    System.out.println("Cache miss");
+                    long startTime = System.currentTimeMillis();
+                    ResultSet result = CubeServerClient.getCubeData(cubeServerUri, queryForCube);
+                    long endTime = System.currentTimeMillis();
+                    cache.insert(queryForCube, result, endTime - startTime);
+                    completableFuture.complete(result);
+                }
+            });
+            completableFutures.add(completableFuture);
+        }
+        return completableFutures;
     }
 
 }

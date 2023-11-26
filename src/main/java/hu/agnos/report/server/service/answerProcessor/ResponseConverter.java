@@ -1,6 +1,5 @@
 package hu.agnos.report.server.service.answerProcessor;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -57,7 +56,7 @@ public class ResponseConverter {
      * @param resultSetsList List of resultSet-arrays, sent by the cubes
      * @return Response to send to the frontend
      */
-    public AnswerForAllDrills getAnswer(List<ResultSet[]> resultSetsList) {
+    public AnswerForAllDrills getAnswer(List<ResultSet> resultSetsList) {
         List<AnswerForSingleDrill> answerList = new ArrayList<>(query.drillVectors().size());
         for (DrillVector drillVector : query.drillVectors()) {
             Map<String, ResultSet> matchingResultSets = getResulSetsForDrill(drillVector, resultSetsList);
@@ -72,15 +71,15 @@ public class ResponseConverter {
      * each of them contains an answer for every drill requests)
      *
      * @param drill The drill to find the answers for
-     * @param resultSetsList List of resultSets to look for the answers in
+     * @param resultSetList List of resultSets to look for the answers in
      * @return The matching resultSet, as a cubeName -> ResultSet map
      */
-    private Map<String, ResultSet> getResulSetsForDrill(DrillVector drill, List<ResultSet[]> resultSetsList) {
+    private Map<String, ResultSet> getResulSetsForDrill(DrillVector drill, List<ResultSet> resultSetList) {
         Map<String, ResultSet> matchingResultSets = new HashMap<>(report.getCubes().size());
-        for (ResultSet[] resultSets : resultSetsList) {
-            Map.Entry<String, ResultSet> matchingResultSet = ResponseConverter.findTheMatchingResultSet(drill, resultSets);
-            if (matchingResultSet != null) {
-                matchingResultSets.put(matchingResultSet.getKey(), matchingResultSet.getValue());
+        for (ResultSet resultSet : resultSetList) {
+            DrillVector originalDrill = resultSet.originalDrill();
+            if (SetFunctions.isHaveSameElements(originalDrill.dimsToDrill(), drill.dimsToDrill())) {
+                matchingResultSets.put(resultSet.cubeName(), resultSet);
             }
         }
         return matchingResultSets;
@@ -97,23 +96,6 @@ public class ResponseConverter {
         List<DimsAndValues> dataRows = futureValuesList.stream().map(CompletableFuture::join).toList();
 
         return new AnswerForSingleDrill(formatDrillNameForFrontend(drillName), new DataRowsInResponse(dataRows));
-    }
-
-    /**
-     * Selects the ResultSet matching to a drill from an array of ResultSets, came from an answer from a single Cube.
-     *
-     * @param drill The drill to find the answers for
-     * @param resultSets Array of ResultSets to look for the answers in
-     * @return The matching resultSet, as a cubeName -> ResultSet map, with exactly 1 element
-     */
-    private static Map.Entry<String, ResultSet> findTheMatchingResultSet(DrillVector drill, ResultSet[] resultSets) {
-        for (ResultSet resultSet : resultSets) {
-            DrillVector originalDrill = resultSet.originalDrill();
-            if (SetFunctions.isHaveSameElements(originalDrill.dimsToDrill(), drill.dimsToDrill())) {
-                return new AbstractMap.SimpleEntry<>(resultSet.cubeName(), resultSet);
-            }
-        }
-        return null;
     }
 
     private DimsAndValues getMatchingResultValuesFromAllCubes(List<String> drillName, List<NodeDTO> resultRowDimValues, Map<String, ResultSet> matchingResultSets) {

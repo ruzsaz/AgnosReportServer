@@ -22,8 +22,8 @@ public final class Cache {
 
     private static final double LONGTIME = 100;
 
-    private Map<CubeQuery, ResultSet[]> fastCache;
-    private Map<CubeQuery, ResultSet[]> slowCache;
+    private Map<CubeQuery, ResultSet> fastCache;
+    private Map<CubeQuery, ResultSet> slowCache;
 
     @Autowired
     public Cache(CubeList cubeList) {
@@ -36,7 +36,7 @@ public final class Cache {
     }
 
     // TODO: thread-safe version
-    public void insert(CubeQuery key, ResultSet[] value, long computeTime) {
+    public void insert(CubeQuery key, ResultSet value, long computeTime) {
         if (computeTime > LONGTIME) {
             slowCache.put(key, value);
         } else {
@@ -44,7 +44,7 @@ public final class Cache {
         }
     }
 
-    public Optional<ResultSet[]> get(CubeQuery key) {
+    public Optional<ResultSet> get(CubeQuery key) {
         return Optional.ofNullable(slowCache.getOrDefault(key, fastCache.get(key)));
     }
 

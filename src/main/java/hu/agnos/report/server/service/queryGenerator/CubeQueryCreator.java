@@ -49,10 +49,15 @@ public class CubeQueryCreator {
      * @param query The report's query to personalize for the cube
      * @return The personalized query
      */
-    public CubeQuery createCubeQuery(ReportQuery query) {
+    public List<CubeQuery> createCubeQuery(ReportQuery query) {
         List<BaseVectorCoordinateForCube> baseVectorForCube = createBaseVectorForCube(query.baseVector());
         List<DrillVectorForCube> drillVectorsForCube = createDrillVectorsForCube(baseVectorForCube, query.drillVectors());
-        return new CubeQuery(cubeName, query.drillVectors(), baseVectorForCube, drillVectorsForCube);
+        int numberOfDrills = query.drillVectors().size();
+        List<CubeQuery> cubeQueries = new ArrayList<>(numberOfDrills);
+        for (int i = 0; i < numberOfDrills; i++) {
+            cubeQueries.add(new CubeQuery(cubeName, query.drillVectors().get(i), baseVectorForCube, drillVectorsForCube.get(i)));
+        }
+        return cubeQueries;
     }
 
     /**

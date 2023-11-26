@@ -34,7 +34,7 @@ public final class CubeServerClient {
      * @param cubeQuery Query from a single cube to fulfill the data request
      * @return Array of result sets, where an element contains the answer for a single drill
      */
-    public static ResultSet[] getCubeData(String cubeServerUri, CubeQuery cubeQuery) {
+    public static ResultSet getCubeData(String cubeServerUri, CubeQuery cubeQuery) {
         try {
             String body = new ObjectMapper().writeValueAsString(cubeQuery);
 
@@ -46,7 +46,7 @@ public final class CubeServerClient {
                     .build();
             HttpResponse<String> response = HttpClient.newHttpClient()
                     .send(request, HttpResponse.BodyHandlers.ofString());
-            return new ObjectMapper().readValue(response.body(), ResultSet[].class);
+            return new ObjectMapper().readValue(response.body(), ResultSet.class);
         } catch (URISyntaxException | IOException | InterruptedException ex) {
             LoggerFactory.getLogger(CubeServerClient.class).error("Error at downloading data", ex);
         }
