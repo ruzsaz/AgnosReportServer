@@ -1,13 +1,12 @@
 package hu.agnos.report.server.controller;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Optional;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hu.agnos.cube.meta.queryDto.ReportQuery;
-import hu.agnos.report.entity.Report;
-import hu.agnos.report.server.service.AccessRoleService;
-import hu.agnos.report.server.service.DataService;
-import hu.agnos.report.server.service.ReportService;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,14 +17,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Optional;
+import hu.agnos.cube.meta.queryDto.ReportQuery;
+import hu.agnos.report.entity.Report;
+import hu.agnos.report.server.service.AccessRoleService;
+import hu.agnos.report.server.service.DataService;
+import hu.agnos.report.server.service.ReportService;
 
-/**
- *
- * @author parisek
- */
 @RestController
 public class ReportController {
 

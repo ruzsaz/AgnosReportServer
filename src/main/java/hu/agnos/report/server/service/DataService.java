@@ -1,6 +1,7 @@
 package hu.agnos.report.server.service;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -35,52 +36,55 @@ public class DataService {
     @Autowired
     private Cache cache;
 
-    private ExecutorService executor;
+    private final ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     public String getData(Report report, ReportQuery query) {
         int numberOfCubes = report.getCubes().size();
 
         long start = System.currentTimeMillis();
-        executor = Executors.newFixedThreadPool(numberOfCubes);
-        List<CompletableFuture<ResultSet>> resultFutures = new ArrayList<>(numberOfCubes);
+        List<CompletableFuture<List<ResultSet>>> resultFutures = new ArrayList<>(numberOfCubes);
         for (Cube cube : report.getCubes()) {
-            resultFutures.addAll(getDataFromCacheAsync(report, cube, query));
+            resultFutures.add(getDataFromCacheAsync(report, cube, query));
         }
-        List<ResultSet> resultSetsList = resultFutures.stream().map(CompletableFuture::join).collect(Collectors.toList());
+        List<ResultSet> resultSetsList = resultFutures.stream().map(CompletableFuture::join).flatMap(List::stream).collect(Collectors.toList());
         long end = System.currentTimeMillis();
-        System.out.printf("Data query from the cubes took %s ms%n", end - start);
 
         ResponseConverter responseConverter = new ResponseConverter(report, query, Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()));
         String answer = responseConverter.getAnswer(resultSetsList).asJson();
         long end2 = System.currentTimeMillis();
-        System.out.printf("Resolving the data took %s ms%n", end2 - end);
+        System.out.println(cache.toString() + ". --- Answer from the cubes: " + (end - start) + "ms, postprocess: " + (end2 - end) + "ms.");
         return answer;
     }
 
-    private List<CompletableFuture<ResultSet>> getDataFromCacheAsync(Report report, Cube cube, ReportQuery query) {
-        List<CompletableFuture<ResultSet>> completableFutures = new ArrayList<>();
+    private CompletableFuture<List<ResultSet>> getDataFromCacheAsync(Report report, Cube cube, ReportQuery query) {
         CubeMetaDTO cubeMeta = cubeList.cubeMap().get(cube.getName());
         CubeQueryCreator cubeQueryCreator = new CubeQueryCreator(report, cube.getName(), cubeMeta);
         List<CubeQuery> queriesForCube = cubeQueryCreator.createCubeQuery(query);
-        for (CubeQuery queryForCube : queriesForCube) {
-            CompletableFuture<ResultSet> completableFuture = new CompletableFuture<>();
-            executor.submit(() -> {
-                Optional<ResultSet> cachedResult = cache.get(queryForCube);
+        CompletableFuture<List<ResultSet>> completableFuture = new CompletableFuture<>();
+        executor.submit(() -> {
+            List<ResultSet> result = new ArrayList<>(queriesForCube.size());
+            for (Iterator<CubeQuery> iterator = queriesForCube.iterator(); iterator.hasNext(); ) {
+                CubeQuery cubeQuery = iterator.next();
+                Optional<ResultSet> cachedResult = cache.get(cubeQuery);
                 if (cachedResult.isPresent()) {
-                    System.out.println("CACHE hit");
-                    completableFuture.complete(cachedResult.get());
-                } else {
-                    System.out.println("Cache miss");
-                    long startTime = System.currentTimeMillis();
-                    ResultSet result = CubeServerClient.getCubeData(cubeServerUri, queryForCube);
-                    long endTime = System.currentTimeMillis();
-                    cache.insert(queryForCube, result, endTime - startTime);
-                    completableFuture.complete(result);
+                    result.add(cachedResult.get());
+                    iterator.remove();
                 }
-            });
-            completableFutures.add(completableFuture);
-        }
-        return completableFutures;
+            }
+            if (!queriesForCube.isEmpty()) {
+                long startTime = System.currentTimeMillis();
+                List<ResultSet> resultFromCube = CubeServerClient.getCubeData(cubeServerUri, queriesForCube);
+                long runTime = System.currentTimeMillis() - startTime;
+                int resultSize = resultFromCube.size();
+                for (int i = 0; i < resultSize; i++) {
+                    cache.insert(queriesForCube.get(i), resultFromCube.get(i), runTime);
+                    result.add(resultFromCube.get(i));
+                }
+            }
+            completableFuture.complete(result);
+        });
+
+        return completableFuture;
     }
 
 }

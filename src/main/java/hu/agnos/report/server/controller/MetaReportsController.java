@@ -13,9 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import hu.agnos.report.server.service.ReportService;
 
-/**
- * @author parisek
- */
 @RestController
 public class MetaReportsController {
 

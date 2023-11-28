@@ -12,6 +12,12 @@ public class GreetingController {
 
     private static final String template = "Hello, %s!";
 
+    /**
+     * Endpoint to check if the service is up and running.
+     *
+     * @param name Name of the caller
+     * @return "Hello" if any
+     */
     @GetMapping("/greeting")
     public static String greeting(@RequestParam(value = "name", defaultValue = "World") String name) {
         log.debug("Hearth beat check");

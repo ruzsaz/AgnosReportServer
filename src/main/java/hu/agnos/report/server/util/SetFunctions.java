@@ -9,7 +9,10 @@ import java.util.Set;
 /**
  * Collection of simple set functions.
  */
-public class SetFunctions {
+public final class SetFunctions {
+
+    private SetFunctions() {
+    }
 
     public static <E> List<E> limitList(List<E> list, int limit) {
         if (list.size() <= limit) {
@@ -24,12 +27,12 @@ public class SetFunctions {
         for(Set<C> set : sets) {
             newSets.add(List.copyOf(set));
         }
-        return cartesianProductFromList(newSets);
+        return SetFunctions.cartesianProductFromList(newSets);
     }
 
     public static <C> List<List<C>> cartesianProductFromList(List<List<C>> sets) {
         List<List<C>> result = new ArrayList<>(sets.size());
-        getCartesianProductHelper(sets, 0, new ArrayList<>(10), result);
+        SetFunctions.getCartesianProductHelper(sets, 0, new ArrayList<>(10), result);
         return result;
     }
 
@@ -41,13 +44,13 @@ public class SetFunctions {
         List<C> currentSet = sets.get(index);
         for (C element: currentSet) {
             current.add(element);
-            getCartesianProductHelper(sets, index+1, current, result);
+            SetFunctions.getCartesianProductHelper(sets, index+1, current, result);
             current.remove(current.size() - 1);
         }
     }
 
     /**
-     * Tests if two lists have the same elements (as sets).
+     * Tests if two lists have the same elements, regardless of order (as sets).
      *
      * @param list1 First list to check
      * @param list2 Second list to check

@@ -30,8 +30,9 @@ public final class CoordinateExtractor {
      *
      * @param report The report the answer is made for
      * @param drillName List of the dimension names in the drill
-     * @param matchingResultSets List of result sets (from different cubes)
-     * @return The all possible dimension value combinations
+     * @param matchingResultSets cubeName -> resultSet map containing the answer from different cubes for the
+     *         drill
+     * @return List of all possible dimension value combinations
      */
     public static List<List<NodeDTO>> getFullDimensionProductSet(Report report, List<String> drillName, Map<String, ResultSet> matchingResultSets) {
         List<Set<NodeDTO>> dimValuesInDrill = new ArrayList<>(drillName.size());
@@ -44,14 +45,15 @@ public final class CoordinateExtractor {
 
     /**
      * Extracts all occurring dimension values from a list of ResultSets (a ResultSet is an answer from the cubeServer
-     * to a single cube+drill). There are "transparent" cubes according to a dimension, whose dimension values are
-     * omitted, if not present in another cube.
+     * to a single cube+drill). There can be "transparent" cubes according to a dimension, whose dimension values are
+     * omitted if not present in another cube.
      *
      * @param report The report the answer is made for
      * @param dimName Name string of the dimension to extract
-     * @param transparentCubeNames Cubes whose dimension values should be omitted, if not present in another
-     *         cube
-     * @param resultSets List of resultSet to look in for dimension values
+     * @param transparentCubeNames Cube names whose dimension values should be omitted, if not present in
+     *         another cube
+     * @param resultSets cubeName -> resultSet map containing the answer from different cubes for the drill to
+     *         look for dimension values
      * @return Set of the occurring dimension values
      */
     private static Set<NodeDTO> ExtractDimensionValues(Report report, String dimName, Set<String> transparentCubeNames, Map<String, ResultSet> resultSets) {
@@ -94,12 +96,10 @@ public final class CoordinateExtractor {
         ResultSet resultSet = resultSetsEntry.getValue();
         String resultSetCubeName = resultSet.cubeName();
         if (!transparentCubeNames.contains(resultSetCubeName)) {
-            //System.out.println(String.join(", ",resultSet.dimensionHeader()));
             int indexInDrillVector = Arrays.asList(resultSet.dimensionHeader()).indexOf(dimName);
             if (indexInDrillVector >= 0 && resultSet.actualDrill()[indexInDrillVector].isShowResultAsDimValue()) {
                 Set<NodeDTO> dimensionValues = new HashSet<>(10);
                 for (ResultElement resultElement : resultSet.response()) {
-                    //System.out.println(String.join(", ", Arrays.stream(resultElement.header()).map(d -> d.name()).toList()));
                     dimensionValues.add(resultElement.header()[indexInDrillVector]);
                 }
                 return dimensionValues;

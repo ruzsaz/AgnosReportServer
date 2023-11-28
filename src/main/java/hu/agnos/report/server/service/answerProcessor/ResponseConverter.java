@@ -53,7 +53,7 @@ public class ResponseConverter {
     /**
      * Converts the responses from the cubes to a response for the report query.
      *
-     * @param resultSetsList List of resultSet-arrays, sent by the cubes
+     * @param resultSetsList List of resultSets, sent by the cubes
      * @return Response to send to the frontend
      */
     public AnswerForAllDrills getAnswer(List<ResultSet> resultSetsList) {
@@ -159,10 +159,10 @@ public class ResponseConverter {
      * Determines a dim-matching-pattern to look for values in a resultSet.
      *
      * @param drillDimNames Names of the drill dimensions (e.g. 'TERRITORIAL','SEX')
-     * @param dimValues Corresponding dim values (e.g. '{"id":"2","knownId":"03","name":"Pest"}',
+     * @param dimValues Corresponding dim values (e.g. '{"id":"02","name":"Pest"}',
      *         '{"id":"0","knownId":"1","name":"male"}')
      * @param dimensionHeader Array of dimension names in the cube
-     * @return The dim-matching-pattern (e.g. null, '{"id":"2","knownId":"03","name":"Pest"}', null)
+     * @return The dim-matching-pattern (e.g. null, '{"id":"02","name":"Pest"}', null)
      */
     private static NodeDTO[] getMatchPattern(List<String> drillDimNames, List<NodeDTO> dimValues, String[] dimensionHeader) {
         NodeDTO[] pattern = new NodeDTO[dimensionHeader.length];
@@ -191,7 +191,7 @@ public class ResponseConverter {
      * String.equals().
      *
      * @param actualDrill The materialized drill strategy in each coordinate
-     * @param matchPattern Like ([null], [{"id":"01","name":"Pest"}], [null])
+     * @param matchPattern Like ([null], [{"id":"02","name":"Pest"}], [null])
      * @param element Single result element from a resultSet
      * @return True of matches, false if not
      */

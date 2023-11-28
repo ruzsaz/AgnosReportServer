@@ -12,32 +12,29 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import hu.agnos.cube.meta.queryDto.CubeQuery;
-import hu.agnos.cube.meta.resultDto.CubeList;
 import hu.agnos.cube.meta.resultDto.ResultSet;
 
-@Getter
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public final class Cache {
 
     private static final double LONGTIME = 100;
-
-    private Map<CubeQuery, ResultSet> fastCache;
-    private Map<CubeQuery, ResultSet> slowCache;
+    private final Map<CubeQuery, ResultSet> fastCache;
+    private final Map<CubeQuery, ResultSet> slowCache;
+    @Getter
+    private int missCount = 0;   // Number of cache misses
+    @Getter
+    private int getCount = 0;   // Number of total cache lookups
 
     @Autowired
-    public Cache(CubeList cubeList) {
-        init();
-    }
-
-    public void init() {
+    public Cache() {
         fastCache = Collections.synchronizedMap(new LRUMap<>(1000));
         slowCache = Collections.synchronizedMap(new LRUMap<>(1000));
     }
 
-    // TODO: thread-safe version
-    public void insert(CubeQuery key, ResultSet value, long computeTime) {
-        if (computeTime > LONGTIME) {
+    public void insert(CubeQuery key, ResultSet value, long computeTimeInMilliseconds) {
+        missCount++;
+        if (computeTimeInMilliseconds > Cache.LONGTIME) {
             slowCache.put(key, value);
         } else {
             fastCache.put(key, value);
@@ -45,7 +42,16 @@ public final class Cache {
     }
 
     public Optional<ResultSet> get(CubeQuery key) {
+        getCount++;
         return Optional.ofNullable(slowCache.getOrDefault(key, fastCache.get(key)));
+    }
+
+    public int getHitCount() {
+        return getCount - missCount;
+    }
+
+    public String toString() {
+        return "Cache: " + slowCache.size() + " slow, " + fastCache.size() + " fast, " + String.format("%2.2f", 100.0 * (1.0-((double)missCount/getCount))) + "% hit ratio";
     }
 
 }

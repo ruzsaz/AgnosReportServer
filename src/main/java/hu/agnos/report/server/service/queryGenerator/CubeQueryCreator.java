@@ -43,11 +43,11 @@ public class CubeQueryCreator {
     }
 
     /**
-     * Creates a personalized query for a given cube. The query contains only the dimensions and drills present in the
+     * Creates a personalized query-list for a cube. The query contains only the dimensions and drills present in the
      * cube, to the level available in the cube.
      *
      * @param query The report's query to personalize for the cube
-     * @return The personalized query
+     * @return List of the personalized queries
      */
     public List<CubeQuery> createCubeQuery(ReportQuery query) {
         List<BaseVectorCoordinateForCube> baseVectorForCube = createBaseVectorForCube(query.baseVector());
@@ -55,7 +55,7 @@ public class CubeQueryCreator {
         int numberOfDrills = query.drillVectors().size();
         List<CubeQuery> cubeQueries = new ArrayList<>(numberOfDrills);
         for (int i = 0; i < numberOfDrills; i++) {
-            cubeQueries.add(new CubeQuery(cubeName, query.drillVectors().get(i), baseVectorForCube, drillVectorsForCube.get(i)));
+            cubeQueries.add(new CubeQuery(cubeName, cubeMeta.hash(), query.drillVectors().get(i), baseVectorForCube, drillVectorsForCube.get(i)));
         }
         return cubeQueries;
     }
