@@ -12,6 +12,7 @@ import hu.agnos.cube.meta.resultDto.CubeList;
 import hu.agnos.report.entity.Cube;
 import hu.agnos.report.entity.Report;
 import hu.agnos.report.repository.ReportRepository;
+import hu.agnos.report.server.service.AutoReportGenerator;
 
 @Getter
 @Component
@@ -27,6 +28,8 @@ public final class ReportList {
 
     public void init(CubeList cubeList) {
         this.reportList = (new ReportRepository()).findAll();
+        AutoReportGenerator generator = new AutoReportGenerator(cubeList);
+        reportList.addAll(generator.getAll());
         setBrokenStatesFromAvailableCubes(cubeList);
     }
 
