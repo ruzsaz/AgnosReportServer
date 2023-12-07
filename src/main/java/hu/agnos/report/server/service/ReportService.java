@@ -23,7 +23,7 @@ import hu.agnos.report.server.entity.ReportList;
 public class ReportService {
 
     private static final Pattern PATTERN = Pattern.compile(".");
-    private final SimpleDateFormat dateParser = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss", Locale.getDefault());
+    private final SimpleDateFormat dateParser = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
     @Autowired
     ReportList reportList;
     @Autowired
