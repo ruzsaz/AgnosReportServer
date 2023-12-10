@@ -34,7 +34,7 @@ public class AutoReportGenerator {
 
     public Report fromCube(Cube cube) {
         CubeMetaDTO cubeMetaDTO = cubeList.cubeMap().get(cube.getName());
-        Report report = new Report("_" + cube.getName() + "_AutoReport", "public");
+        Report report = new Report("_" + cube.getName() + "_AutoReport", "autoReport");
 
         List<Cube> cubes = new ArrayList<>(1);
         cubes.add(cube);
@@ -76,19 +76,20 @@ public class AutoReportGenerator {
             indicator.setValueCubeName(cube.getName());
             indicator.setValueIsHidden(false);
 
-            indicator.getMultilingualization().get(0).setCaption(measureDTO.name());
-            indicator.getMultilingualization().get(0).setDescription(measureDTO.name() + " leírás");
+            indicator.getMultilingualization().get(0).setCaption((measureDTO.hidden()) ? "(" +  measureDTO.name() + ")" : measureDTO.name());
+            indicator.getMultilingualization().get(0).setDescription((measureDTO.hidden()) ? "(" +  measureDTO.name() + ") rejtett mutató" : measureDTO.name());
             indicator.getMultilingualization().get(0).setValueUnit("bigyó");
             indicator.getMultilingualization().get(0).setValueUnitPlural("bigyó");
             indicator.getMultilingualization().get(0).setDenominatorUnit("bigyó");
             indicator.getMultilingualization().get(0).setDenominatorUnitPlural("bigyó");
-            indicator.getMultilingualization().get(1).setCaption(measureDTO.name()+"_en");
+            indicator.getMultilingualization().get(1).setCaption(measureDTO.name() + "_en");
             indicator.getMultilingualization().get(1).setDescription(measureDTO.name() + " description");
             indicator.getMultilingualization().get(1).setValueUnit("thing");
             indicator.getMultilingualization().get(1).setValueUnitPlural("things");
             indicator.getMultilingualization().get(1).setDenominatorUnit("thing");
             indicator.getMultilingualization().get(1).setDenominatorUnitPlural("things");
             indicatorList.add(indicator);
+
         }
         report.setIndicators(indicatorList);
 
