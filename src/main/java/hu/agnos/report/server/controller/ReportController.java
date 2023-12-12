@@ -1,5 +1,6 @@
 package hu.agnos.report.server.controller;
 
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Optional;
@@ -44,7 +45,7 @@ public class ReportController {
     @GetMapping(value = "/report", produces = "application/json")
     ResponseEntity<?> getData(@RequestParam(value = "queries", required = false) String encodedQueries) throws JsonProcessingException, JsonMappingException {
         System.out.println("New report query ---------------------------------------------");
-        String queries = new String(Base64.getDecoder().decode(encodedQueries), StandardCharsets.UTF_8);
+        String queries = URLDecoder.decode(new String(Base64.getDecoder().decode(encodedQueries), StandardCharsets.UTF_8));
         System.out.println(queries);
         ReportQuery query = new ObjectMapper().readValue(queries, ReportQuery.class);
         System.out.println(query.toString());
