@@ -9,6 +9,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,8 @@ import hu.agnos.report.server.service.queryGenerator.CubeQueryCreator;
 
 @Service
 public class DataService {
+
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(DataService.class);
 
     @Value("${agnos.cube.server.uri}")
     private String cubeServerUri;
@@ -52,7 +55,7 @@ public class DataService {
         ResponseConverter responseConverter = new ResponseConverter(report, query, Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()));
         String answer = responseConverter.getAnswer(resultSetsList).asJson();
         long end2 = System.currentTimeMillis();
-        System.out.println(cache.toString() + ". --- Answer from the cubes: " + (end - start) + "ms, postprocess: " + (end2 - end) + "ms.");
+        log.info(cache.toString() + ". --- Answer from the cubes: " + (end - start) + "ms, postprocess: " + (end2 - end) + "ms.");
         return answer;
     }
 

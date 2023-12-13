@@ -44,11 +44,11 @@ public class ReportController {
      */
     @GetMapping(value = "/report", produces = "application/json")
     ResponseEntity<?> getData(@RequestParam(value = "queries", required = false) String encodedQueries) throws JsonProcessingException, JsonMappingException {
-        System.out.println("New report query ---------------------------------------------");
+        log.debug("New report query ---------------------------------------------");
         String queries = URLDecoder.decode(new String(Base64.getDecoder().decode(encodedQueries), StandardCharsets.UTF_8));
-        System.out.println(queries);
+        log.debug(queries);
         ReportQuery query = new ObjectMapper().readValue(queries, ReportQuery.class);
-        System.out.println(query.toString());
+        log.debug(query.toString());
         Report report = reportService.getReportByName(query.reportName());
         MDC.put("report", report.getName());
 
