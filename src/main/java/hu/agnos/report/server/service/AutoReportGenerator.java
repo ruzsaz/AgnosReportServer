@@ -13,6 +13,10 @@ import hu.agnos.cube.meta.resultDto.MeasureDTO;
 import hu.agnos.report.entity.Cube;
 import hu.agnos.report.entity.Dimension;
 import hu.agnos.report.entity.Indicator;
+import hu.agnos.report.entity.Keyword;
+import hu.agnos.report.entity.KeywordLabels;
+import hu.agnos.report.entity.Kpi;
+import hu.agnos.report.entity.KpiLabels;
 import hu.agnos.report.entity.Report;
 import hu.agnos.report.entity.ReportHelp;
 import hu.agnos.report.entity.ReportLabels;
@@ -32,9 +36,16 @@ public class AutoReportGenerator {
         return reportList;
     }
 
-    public Report fromCube(Cube cube) {
+    private Report fromCube(Cube cube) {
         CubeMetaDTO cubeMetaDTO = cubeList.cubeMap().get(cube.getName());
         Report report = new Report("_" + cube.getName() + "_AutoReport", "autoReport");
+
+        Kpi autoReportKpi = new Kpi(new ArrayList<>(List.of(new KpiLabels("", "autoKpi", "autoKpi_description"))));
+        autoReportKpi.setIndicatorIndex(0);
+        report.setKpi(autoReportKpi);
+
+        Keyword autoReportKeyword = new Keyword("autoreport", "", new ArrayList<>(List.of(new KeywordLabels("", "autoReport"))));
+        report.setKeywords(new ArrayList<>(List.of(autoReportKeyword)));
 
         List<Cube> cubes = new ArrayList<>(1);
         cubes.add(cube);
