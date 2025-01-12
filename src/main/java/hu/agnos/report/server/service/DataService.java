@@ -41,13 +41,19 @@ public class DataService {
 
     private final ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
-    public String getData(Report report, ReportQuery query) {
+    public String getData(Report report, ReportQuery query, boolean forceToSlowCache) {
+
+        boolean toSlowCache = forceToSlowCache || query.isCubePreparationRequired();
+        if (query.isCubePreparationRequired()) {
+            prepareCubesAsync(report.getCubes());
+        }
+
         int numberOfCubes = report.getCubes().size();
 
         long start = System.currentTimeMillis();
         List<CompletableFuture<List<ResultSet>>> resultFutures = new ArrayList<>(numberOfCubes);
         for (Cube cube : report.getCubes()) {
-            resultFutures.add(getDataFromCacheAsync(report, cube, query));
+            resultFutures.add(getDataFromCacheAsync(report, cube, query, toSlowCache));
         }
         List<ResultSet> resultSetsList = resultFutures.stream().map(CompletableFuture::join).flatMap(List::stream).collect(Collectors.toList());
         long end = System.currentTimeMillis();
@@ -59,7 +65,7 @@ public class DataService {
         return answer;
     }
 
-    private CompletableFuture<List<ResultSet>> getDataFromCacheAsync(Report report, Cube cube, ReportQuery query) {
+    private CompletableFuture<List<ResultSet>> getDataFromCacheAsync(Report report, Cube cube, ReportQuery query, boolean forceToSlowCache) {
         CubeMetaDTO cubeMeta = cubeList.cubeMap().get(cube.getName());
         CubeQueryCreator cubeQueryCreator = new CubeQueryCreator(report, cube.getName(), cubeMeta);
         List<CubeQuery> queriesForCube = cubeQueryCreator.createCubeQuery(query);
@@ -80,7 +86,7 @@ public class DataService {
                 long runTime = System.currentTimeMillis() - startTime;
                 int resultSize = resultFromCube.size();
                 for (int i = 0; i < resultSize; i++) {
-                    cache.insert(queriesForCube.get(i), resultFromCube.get(i), runTime);
+                    cache.insert(queriesForCube.get(i), resultFromCube.get(i), runTime, forceToSlowCache);
                     result.add(resultFromCube.get(i));
                 }
             }
@@ -88,6 +94,12 @@ public class DataService {
         });
 
         return completableFuture;
+    }
+
+    private void prepareCubesAsync(List<Cube> cubes) {
+        CompletableFuture.runAsync(() -> {
+            CubeServerClient.prepareCubes(cubeServerUri, cubes.stream().map(Cube::getName).collect(Collectors.toList()));
+        }, executor);
     }
 
 }

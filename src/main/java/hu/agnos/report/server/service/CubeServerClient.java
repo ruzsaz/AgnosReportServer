@@ -82,6 +82,24 @@ public final class CubeServerClient {
         return Optional.ofNullable(cubeList);
     }
 
-    private static class ArrayListTypeReference extends TypeReference<ArrayList<ResultSet>> {
+    public static void prepareCubes(String cubeServerUri, List<String> cubeNames) {
+        try {
+            String body = new ObjectMapper().writeValueAsString(cubeNames);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(new URIBuilder(cubeServerUri + "/prepare").build())
+                    .timeout(Duration.of(20L, SECONDS))
+                    .setHeader("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(body))
+                    .build();
+            HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (URISyntaxException | IOException | InterruptedException ex) {
+            LoggerFactory.getLogger(CubeServerClient.class).error("Error at preparing cubes", ex);
+        }
     }
+
+    private static class ArrayListTypeReference extends TypeReference<ArrayList<ResultSet>> {
+
+    }
+
 }

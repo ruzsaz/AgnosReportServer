@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import hu.agnos.cube.meta.resultDto.CubeList;
+import hu.agnos.report.server.entity.Cache;
 import hu.agnos.report.server.entity.ReportList;
 import hu.agnos.report.server.service.CubeServerClient;
 
@@ -24,6 +25,8 @@ public class RefreshController {
     ReportList reportList;
     @Autowired
     CubeList cubeList;
+    @Autowired
+    Cache cache;
 
     @Value("${agnos.cube.server.uri}")
     private String cubeServerUri;
@@ -38,7 +41,8 @@ public class RefreshController {
     public String refresh() {
         refreshCubeList();
         refreshReports();
-        log.info("Cubes and reports are refreshed");
+        saveCache();
+        log.info("Cubes and reports are refreshed, cache saved.");
         return "Refreshed";
     }
 
@@ -50,5 +54,13 @@ public class RefreshController {
     private void refreshReports() {
         reportList.init(cubeList);
     }
+
+    /**
+     * Saves the slow cache to disk.
+     */
+    private void saveCache() {
+        cache.saveToFile();
+    }
+
 
 }

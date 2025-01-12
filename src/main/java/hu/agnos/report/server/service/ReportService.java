@@ -80,16 +80,22 @@ public class ReportService {
     }
 
     private String getKpiValue(Report report) {
-        List<BaseVectorCoordinate> topBaseVector = new ArrayList<>(report.getDimensions().size());
-        for (Dimension dimension : report.getDimensions()) {
-            topBaseVector.add(new BaseVectorCoordinate(dimension.getName(), new ArrayList<>(0)));
+        List<Dimension> dimensions = report.getDimensions();
+        int dimensionsSize = dimensions.size();
+        List<BaseVectorCoordinate> baseVector = new ArrayList<>(dimensionsSize);
+        ArrayList<ArrayList<String>> kpiParsedBaseLevels = report.getKpi().getParsedBaseLevel();
+
+        for (int i = 0; i < dimensionsSize; i++) {
+            Dimension dimension = dimensions.get(i);
+            ArrayList<String> coordinate = (kpiParsedBaseLevels == null || kpiParsedBaseLevels.get(i).isEmpty()) ? new ArrayList<>(0) : kpiParsedBaseLevels.get(i);
+            baseVector.add(new BaseVectorCoordinate(dimension.getName(), coordinate));
         }
 
         List<DrillVector> noDrillVector = new ArrayList<>(1);
         noDrillVector.add(new DrillVector(new ArrayList<>(0)));
 
-        ReportQuery query = new ReportQuery(report.getName(), topBaseVector, noDrillVector);
-        return dataService.getData(report, query);
+        ReportQuery query = new ReportQuery(report.getName(), baseVector, noDrillVector, false);
+        return dataService.getData(report, query, true);
     }
 
 }

@@ -53,9 +53,9 @@ public class ReportController {
         MDC.put("report", report.getName());
 
         if (AccessRoleService.isReportAccessible(SecurityContextHolder.getContext(), report)) {
-            String resultSet = dataService.getData(report, query);
+            String resultSet = dataService.getData(report, query, false);
             Optional<String> result = Optional.ofNullable(resultSet);
-            MDC.put("type", "data");
+            MDC.put("type", (query.isCubePreparationRequired()) ? "report_access" : "data");
             log.info("Successful data access");
             return result.map(response -> ResponseEntity.ok().body(response))
                     .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));

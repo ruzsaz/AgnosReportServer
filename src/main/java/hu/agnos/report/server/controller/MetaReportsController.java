@@ -31,14 +31,4 @@ public class MetaReportsController {
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-//    @GetMapping(value = "keywords", produces = "application/json")
-//    ResponseEntity<?> getKeywordsList() {
-//        String keywordList = reportService.getReportsHeader(SecurityContextHolder.getContext());
-//        Optional<String> result = Optional.ofNullable(keywordList);
-//        MDC.put("type", "keywordList");
-//        log.info("Available keywords query");
-//        return result.map(response -> ResponseEntity.ok().body(response))
-//                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-//    }
-
 }
