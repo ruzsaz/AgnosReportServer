@@ -92,7 +92,6 @@ public class DataService {
             }
             completableFuture.complete(result);
         });
-
         return completableFuture;
     }
 
