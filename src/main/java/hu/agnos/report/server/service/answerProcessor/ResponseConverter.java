@@ -146,7 +146,7 @@ public class ResponseConverter {
      * @return The measure's value at the given base@drill from the cube
      */
     private static double getMeasureValue(Map<String, double[]> dataRowByCubeName, Map<String, ResultSet> matchingResultSets, String cubeName, String measureName) {
-        if (cubeName.isEmpty()) {
+        if (cubeName == null || cubeName.isEmpty()) {
             return 1.0;
         }
         ResultSet valueResultSet = matchingResultSets.get(cubeName);
